@@ -1,0 +1,50 @@
+﻿@model IEnumerable<UniversityApp.Models.Courses>
+
+@{
+    ViewData["Title"] = "Index";
+    Layout = "~/Views/Shared/_SecretariesLayout.cshtml";
+}
+
+<h4 style="text-align: center;">All courses</h4>
+<table class="table table-dark">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.CourseTitle)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.NoCredits)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Year)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Semester)
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>
+                    @Html.DisplayFor(modelItem => item.CourseTitle)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.NoCredits)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Year)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Semester)
+                </td>
+                <td>
+                    <a asp-action="Edit" asp-route-id="@item.CourseId">Edit</a> |
+                    <a asp-action="Delete" asp-route-id="@item.CourseId">Delete</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

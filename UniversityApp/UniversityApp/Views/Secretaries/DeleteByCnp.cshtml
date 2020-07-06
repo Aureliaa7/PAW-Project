@@ -1,0 +1,28 @@
+﻿@model UniversityApp.ViewModels.DeleteSecretaryViewModel
+
+@{
+    ViewData["Title"] = "DeleteByCnp";
+    Layout = "~/Views/Shared/_SecretariesLayout.cshtml";
+}
+
+<h4 style="text-align: center;">Delete secretary</h4>
+<hr />
+<div class="row justify-content-center">
+    <div class="col-md-4">
+        <form asp-action="DeleteByCnp">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div class="form-group">
+                <label asp-for="Cnp" class="control-label"></label>
+                <select id="selected_cnp" asp-for="Cnp" onchange="get_secretary_name()" class="form-control" asp-items="ViewBag.SecretaryCNP"></select>
+            </div>
+            <div class="form-group">
+                <label asp-for="SecretaryName" class="control-label">Secretary name</label>
+                <input id="secretary_name" asp-for="SecretaryName" class="form-control" disabled />
+            </div>
+            <div class="form-group">
+                <input type="submit" value="Delete" class="btn btn-primary" id="button-form" />
+            </div>
+        </form>
+    </div>
+</div>
+

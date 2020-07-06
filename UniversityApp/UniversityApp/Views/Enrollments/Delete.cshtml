@@ -1,0 +1,33 @@
+﻿@model UniversityApp.ViewModels.DeleteEnrollmentViewModel
+
+@{
+    ViewData["Title"] = "Delete";
+    Layout = "~/Views/Shared/_SecretariesLayout.cshtml";
+}
+
+
+<h4 style="text-align: center;">Delete enrollment</h4>
+<hr />
+<div class="row justify-content-center">
+    <div class="col-4">
+        <form asp-action="Delete">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div class="form-group">
+                <label asp-for="CourseTitle" class="control-label">Course title</label>
+                <select id="selected_course" asp-for="CourseTitle" class="form-control" asp-items="ViewBag.CourseTitle"></select>
+            </div>
+            <div class="form-group">
+                <label asp-for="StudentCNP" class="control-label">Student CNP</label>
+                <select id="selected_cnp" asp-for="StudentCNP" onchange="get_enrolled_student_name()" class="form-control" asp-items="ViewBag.StudentCNP"></select>
+            </div>
+            <div class="form-group">
+                <label asp-for="StudentName" class="control-label">Student name</label>
+                <input id="student_name" asp-for="StudentName" class="form-control" disabled />
+            </div>
+            <div class="form-group">
+                <input type="submit" value="Delete enrollment" class="btn btn-primary" id="button-form" />
+            </div>
+        </form>
+    </div>
+</div>
+

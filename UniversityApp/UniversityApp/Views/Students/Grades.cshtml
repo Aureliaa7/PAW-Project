@@ -1,0 +1,40 @@
+﻿@model IEnumerable<UniversityApp.ViewModels.StudentGrade>
+
+@{
+    ViewData["Title"] = "Grades";
+    Layout = "~/Views/Shared/_StudentsLayout.cshtml";
+}
+
+<h4 style="text-align:justify">Grades</h4>
+
+<table class="table table-dark">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.CourseTitle)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.GradeValue)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Date)
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model) {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.CourseTitle)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.GradeValue)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Date)
+            </td>
+        </tr>
+}
+    </tbody>
+</table>

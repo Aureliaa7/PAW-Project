@@ -1,0 +1,61 @@
+﻿@using Microsoft.AspNetCore.Http
+@{
+    ViewData["Title"] = "Home";
+    Layout = "~/Views/Shared/_SecretariesLayout.cshtml";
+}
+
+<div class="modal" tabindex="-1" role="dialog" id="myModal">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"> </h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p>You have successfully logged in!</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@{ if (Model != null)
+    {
+        <div class="jumbotron">
+            <h3 style="text-align: center;">Personal data</h3>
+            <hr />
+            <h4>First name:  @Model.FirstName</h4>
+            <h4>Last name: @Model.LastName</h4>
+            <h4>CNP: @Model.Cnp</h4>
+            <h4>Phone number: @Model.PhoneNumber</h4>
+            <h4>Email: @Model.Email</h4>
+
+        </div>
+
+    }
+
+}
+
+
+<script type="text/javascript">
+    // this displays me the popup every time i access the home page
+    //$(window).load(function () {
+    //    $('#myModal').modal('show');
+    //});
+
+
+    //it works, but not the way i want it to
+    
+    $(document).ready(function () {
+        if (sessionStorage.getItem('#myModal') !== '1') {
+            $('#myModal').modal('show');
+            sessionStorage.setItem('#myModal', '1');
+        }
+    });
+
+
+</script>

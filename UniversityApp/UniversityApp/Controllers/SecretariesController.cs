@@ -54,7 +54,6 @@ namespace UniversityApp.Controllers
         }
 
 
-        [Authorize(Roles = "Secretary")]
         [HttpGet]
         public IActionResult Create()
         {

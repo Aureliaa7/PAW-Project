@@ -2,11 +2,11 @@
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using UniversityApp.Models;
-using UniversityApp.ViewModels;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Authorization;
-using UniversityApp.Interfaces.Services;
+using UniversityApp.Core.DomainEntities;
+using UniversityApp.Core.Interfaces.Services;
+using UniversityApp.Core.ViewModels;
 
 namespace UniversityApp.Controllers
 {
@@ -101,7 +101,6 @@ namespace UniversityApp.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Logout()
         {
-            //HttpContext.Session.Clear();
             contextAccessor.HttpContext.Session.Clear();
             await signManager.SignOutAsync();
 

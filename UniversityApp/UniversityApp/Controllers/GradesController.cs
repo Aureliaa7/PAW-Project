@@ -1,37 +1,37 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-using UniversityApp.Interfaces;
-using UniversityApp.Models;
+using UniversityApp.Core.DomainEntities;
+using UniversityApp.Core.Interfaces.Services;
 
 namespace UniversityApp.Controllers
 {
     public class GradesController : Controller
     {
         private readonly IGradeService gradeService;
+        private readonly IEnrollmentService enrollmentService;
 
-        public GradesController(IGradeService gradeService)
+        public GradesController(IGradeService gradeService, IEnrollmentService enrollmentService)
         {
             this.gradeService = gradeService;
+            this.enrollmentService = enrollmentService;
         }
 
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
-            return View(gradeService.GradeRepository.FindAll().ToList());
+            return View(await gradeService.GetAllAsync());
         }
 
-        public IActionResult Details(int? id)
+        public async Task<IActionResult> Details(Guid? id)
         {
             if (id == null)
             {
                 return NotFound();
             }
-            var grade = gradeService.GradeRepository.FindByCondition(g => g.GradeId == id).FirstOrDefault();
+            var grade = await gradeService.GetFirstOrDefaultAsync(g => g.GradeId == id);
             if (grade == null)
             {
                 return NotFound();
@@ -40,36 +40,34 @@ namespace UniversityApp.Controllers
         }
 
         [Authorize(Roles = "Teacher")]
-        public IActionResult Create()
+        public async Task<IActionResult> Create()
         {
-            ViewData["EnrollmentId"] = new SelectList(gradeService.EnrollmentRepository.FindAll(), "EnrollmentId", "EnrollmentId");
+            ViewData["EnrollmentId"] = new SelectList(
+                await enrollmentService.GetAllEnrollmentsAsync(), "EnrollmentId", "EnrollmentId");
             return View();
         }
 
-        // POST: Grades/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to, for 
-        // more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Create([Bind("GradeId,EnrollmentId,Value,Date")] Grades grade)
+        public async Task<IActionResult> Create([Bind("GradeId,EnrollmentId,Value,Date")] Grades grade)
         {
             if (ModelState.IsValid)
             {
-                gradeService.GradeRepository.Create(grade);
+                await gradeService.AddAsync(grade);
                 return RedirectToAction("Home", "Teachers");
             }
-            ViewData["EnrollmentId"] = new SelectList(gradeService.EnrollmentRepository.FindAll(), "EnrollmentId", "EnrollmentId", grade.EnrollmentId);
+            ViewData["EnrollmentId"] = new SelectList(await enrollmentService.GetAllEnrollmentsAsync(), "EnrollmentId", "EnrollmentId", grade.EnrollmentId);
             return View(grade);
         }
 
         [Authorize(Roles = "Teacher")]
-        public IActionResult Edit(int? id)
+        public async Task<IActionResult> Edit(Guid? id)
         {
             if (id == null)
             {
                 return NotFound();
             }
-            var grade = gradeService.GradeRepository.FindByCondition(g => g.GradeId == id).First();
+            var grade = await gradeService.GetFirstOrDefaultAsync(g => g.GradeId == id);
 
             if (grade == null)
             {
@@ -78,12 +76,9 @@ namespace UniversityApp.Controllers
             return View(grade);
         }
 
-        // POST: Grades/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to, for 
-        // more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Edit(int id, [Bind("GradeId,EnrollmentId,Value,Date")] Grades grade)
+        public async Task<IActionResult> Edit(Guid id, [Bind("GradeId,EnrollmentId,Value,Date")] Grades grade)
         {
             if (id != grade.GradeId)
             {
@@ -94,11 +89,11 @@ namespace UniversityApp.Controllers
             {
                 try
                 {
-                    gradeService.GradeRepository.Update(grade);
+                    await gradeService.UpdateAsync(grade);
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!GradesExists(grade.GradeId))
+                    if (! await GradesExistsAsync(grade.GradeId))
                     {
                         return NotFound();
                     }
@@ -109,18 +104,18 @@ namespace UniversityApp.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["EnrollmentId"] = new SelectList(gradeService.EnrollmentRepository.FindAll(), "EnrollmentId", "EnrollmentId", grade.EnrollmentId);
+            ViewData["EnrollmentId"] = new SelectList(await enrollmentService.GetAllEnrollmentsAsync(), "EnrollmentId", "EnrollmentId", grade.EnrollmentId);
             return View(grade);
         }
 
         [Authorize(Roles = "Teacher")]
-        public IActionResult Delete(int? id)
+        public async Task<IActionResult> Delete(Guid? id)
         {
             if (id == null)
             {
                 return NotFound();
             }
-            var grade = gradeService.GradeRepository.FindByCondition(g => g.GradeId == id).FirstOrDefault();
+            var grade = await gradeService.GetFirstOrDefaultAsync(g => g.GradeId == id);
             if (grade == null)
             {
                 return NotFound();
@@ -128,20 +123,24 @@ namespace UniversityApp.Controllers
             return View(grade);
         }
 
-        // POST: Grades/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
-        public IActionResult DeleteConfirmed(int id)
+        public async Task<IActionResult> DeleteConfirmed(Guid id)
         {
-            var grade = gradeService.GradeRepository.FindByCondition(g => g.GradeId == id).First();
-            gradeService.GradeRepository.Delete(grade);
+            await gradeService.DeleteAsync(id);
             return RedirectToAction(nameof(Index));
         }
 
-        private bool GradesExists(int id)
+        private async Task<bool> GradesExistsAsync(Guid id)
         {
-            //return _context.Grades.Any(e => e.GradeId == id);
-            return gradeService.GradeRepository.FindByCondition(g => g.GradeId == id).Any();
+            var grade = await gradeService.GetFirstOrDefaultAsync(g => g.GradeId == id);
+
+            if (grade != null)
+            {
+                return true;
+            }
+
+            return false;
         }
     }
 }

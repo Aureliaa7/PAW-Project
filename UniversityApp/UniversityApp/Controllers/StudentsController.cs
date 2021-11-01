@@ -8,10 +8,9 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using UniversityApp.Interfaces;
-using UniversityApp.Interfaces.Services;
-using UniversityApp.Models;
-using UniversityApp.ViewModels;
+using UniversityApp.Core.DomainEntities;
+using UniversityApp.Core.Interfaces.Services;
+using UniversityApp.Core.ViewModels;
 
 namespace UniversityApp.Controllers
 {
@@ -30,18 +29,18 @@ namespace UniversityApp.Controllers
         }
 
         [Authorize(Roles = "Secretary")]
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
-            return View(studentService.StudentRepository.FindAll().ToList().OrderBy(s => s.StudyYear));
+            return View((await studentService.GetAsync()).OrderBy(s => s.StudyYear));
         }
 
-        public IActionResult Details(int? id)
+        public async Task<IActionResult> Details(Guid? id)
         {
             if (id == null)
             {
                 return NotFound();
             }
-            var student = studentService.StudentRepository.FindByCondition(s => s.StudentId == id).FirstOrDefault();
+            var student = (await studentService.GetAsync(s => s.StudentId == id)).FirstOrDefault();
             if (student == null)
             {
                 return NotFound();
@@ -68,7 +67,7 @@ namespace UniversityApp.Controllers
                 {
                     student.Image = user.Image;
                     await userManager.AddToRoleAsync(user, student.Role);
-                    studentService.RegisterStudent(student, user.Id);
+                    await studentService.AddAsync(student, user.Id);
 
                     return RedirectToAction("Create", "Enrollments");
                 }
@@ -86,13 +85,13 @@ namespace UniversityApp.Controllers
         }
 
         [Authorize(Roles = "Secretary")]
-        public IActionResult Edit(int? id)
+        public async Task<IActionResult> Edit(Guid? id)
         {
             if (id == null)
             {
                 return NotFound();
             }
-            var student = studentService.StudentRepository.FindByCondition(s => s.StudentId == id).First();
+            var student = (await studentService.GetAsync(s => s.StudentId == id)).FirstOrDefault();
 
             if (student == null)
             {
@@ -104,7 +103,7 @@ namespace UniversityApp.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Edit(int id, [Bind("StudentId,UserId,FirstName,LastName,Cnp,PhoneNumber,Email,StudyYear,Section,GroupName")] Students student)
+        public async Task<IActionResult> Edit(Guid id, [Bind("StudentId,UserId,FirstName,LastName,Cnp,PhoneNumber,Email,StudyYear,Section,GroupName")] Students student)
         {
             if (id != student.StudentId)
             {
@@ -113,9 +112,10 @@ namespace UniversityApp.Controllers
 
             if (ModelState.IsValid)
             {
-                studentService.StudentRepository.Update(student);
+                await studentService.UpdateAsync(student); ;
                 // WHY DO I DO THIS?!
-                var studentFound = studentService.StudentRepository.FindByCondition(s => s.StudentId == student.StudentId);
+                // IDK
+                var studentFound = (await studentService.GetAsync(s => s.StudentId == student.StudentId)).FirstOrDefault();
                 if (studentFound == null)
                 {
                     return NotFound();
@@ -127,13 +127,13 @@ namespace UniversityApp.Controllers
         }
 
         [Authorize(Roles = "Secretary")]
-        public IActionResult Delete(int? id)
+        public async Task<IActionResult> Delete(Guid? id)
         {
             if (id == null)
             {
                 return NotFound();
             }
-            var students = studentService.StudentRepository.FindByCondition(s => s.StudentId == id).FirstOrDefault();
+            var students = (await studentService.GetAsync(s => s.StudentId == id)).FirstOrDefault();
             if (students == null)
             {
                 return NotFound();
@@ -141,44 +141,44 @@ namespace UniversityApp.Controllers
             return View(students);
         }
 
-        public IActionResult DeleteSelectedStudent()
+        public async Task<IActionResult> DeleteSelectedStudent()
         {
-            ViewData["StudentCnp"] = new SelectList(studentService.StudentRepository.FindAll(), "Cnp", "Cnp");
+            ViewData["StudentCnp"] = new SelectList(await studentService.GetAsync(), "Cnp", "Cnp");
             return View();
         }
 
         [Authorize]
         [HttpPost]
-        public IActionResult DeleteSelectedStudent(DeleteStudentViewModel model)
+        public async Task<IActionResult> DeleteSelectedStudent(DeleteStudentViewModel model)
         {
             if (ModelState.IsValid)
             {
-                studentService.DeleteSelectedStudent(model);
+                await studentService.DeleteAsync(model);
                 return RedirectToAction("Home", "Secretaries");
             }
 
-            ViewData["StudentCnp"] = new SelectList(studentService.StudentRepository.FindAll(), "Cnp", "Cnp");
+            ViewData["StudentCnp"] = new SelectList(await studentService.GetAsync(), "Cnp", "Cnp");
             return View(model);
         }
 
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
-        public IActionResult DeleteConfirmed(int id)
+        public async Task<IActionResult> DeleteConfirmed(Guid id)
         {
-            var student = studentService.StudentRepository.FindByCondition(s => s.StudentId == id).First();
-            var user = studentService.UserRepository.FindByCondition(u => String.Equals(u.Id, student.UserId)).First();
+            var student = (await studentService.GetAsync(s => s.StudentId == id)).FirstOrDefault();
+            var user = (await userService.GetAsync(u => String.Equals(u.Id, student.UserId))).FirstOrDefault();
         
-            studentService.StudentRepository.Delete(student);
-            studentService.UserRepository.Delete(user);
+            await studentService.DeleteAsync(student.StudentId);
+            await userService.DeleteAsync(new Guid(user.Id));
 
             return RedirectToAction(nameof(Index));
         }
 
-        public IActionResult GetStudentToBeDeleted(int studyYear, string sectionName, string cnp)
+        public async Task<IActionResult> GetStudentToBeDeleted(int studyYear, string sectionName, string cnp)
         {
             var studentName = "student not found";
-            var searchedStudent = studentService.StudentRepository.FindByCondition(s => (s.StudyYear == studyYear)
-            && (String.Equals(s.Section, sectionName)) && (String.Equals(s.Cnp, cnp))).FirstOrDefault();
+            var searchedStudent = (await studentService.GetAsync(s => (s.StudyYear == studyYear)
+            && (String.Equals(s.Section, sectionName)) && (String.Equals(s.Cnp, cnp)))).FirstOrDefault();
             if (searchedStudent != null)
             {
                 studentName = searchedStudent.LastName + " " + searchedStudent.FirstName;
@@ -197,7 +197,7 @@ namespace UniversityApp.Controllers
             if(applicationUser != null)
             {
                 // search the student based on his user id
-                var student = studentService.StudentRepository.FindByCondition(s => String.Equals(userId, s.UserId)).FirstOrDefault();
+                var student = (await studentService.GetAsync(s => String.Equals(userId, s.UserId))).FirstOrDefault();
                 
                 if (student != null)
                 {
@@ -208,13 +208,13 @@ namespace UniversityApp.Controllers
         }
 
         [Authorize(Roles = "Student")]
-        public IActionResult Grades([FromServices] IGradeService gradeService, [FromServices] IFindLoggedInUser findUserService)
+        public async Task<IActionResult> Grades([FromServices] IGradeService gradeService, [FromServices] IFindLoggedInUser findUserService)
         {
             var userId = findUserService.GetIdLoggedInUser();
             if (userId != null)
             {
-                var student = studentService.StudentRepository.FindByCondition(s => String.Equals(userId, s.UserId)).FirstOrDefault();
-                var grades = gradeService.GetGradesForStudent(student.StudentId);
+                var student = (await studentService.GetAsync(s => String.Equals(userId, s.UserId))).FirstOrDefault();
+                var grades = gradeService.GetGradesForStudentAsync(student.StudentId);
                 return View(grades);
             }
             return RedirectToAction("Home","Students");

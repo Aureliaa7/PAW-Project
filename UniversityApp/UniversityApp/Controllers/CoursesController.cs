@@ -1,8 +1,9 @@
-﻿using System.Linq;
+﻿using System;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using UniversityApp.Interfaces;
-using UniversityApp.Models;
+using UniversityApp.Core.DomainEntities;
+using UniversityApp.Core.Interfaces.Services;
 
 namespace UniversityApp.Controllers
 {
@@ -16,9 +17,9 @@ namespace UniversityApp.Controllers
         }
 
         [Authorize(Roles = "Secretary")]
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
-            return View(courseService.CourseRepository.FindAll().ToList().OrderBy(c => c.CourseTitle));
+            return View(await courseService.GetAsync());
         }
 
         [Authorize(Roles = "Secretary")]
@@ -29,24 +30,25 @@ namespace UniversityApp.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Create([Bind("CourseId,CourseTitle,NoCredits,Year,Semester")] Courses courses)
+        public async Task<IActionResult> Create(
+            [Bind("CourseId,CourseTitle,NoCredits,Year,Semester")] Courses courses)
         {
             if (ModelState.IsValid)
             {
-                courseService.CourseRepository.Create(courses);
+                await courseService.AddAsync(courses);
                 return RedirectToAction(nameof(Index));
             }
             return View(courses);
         }
 
         [Authorize(Roles = "Secretary")]
-        public IActionResult Edit(int? id)
+        public async Task<IActionResult> Edit(Guid? id)
         {
             if (id == null)
             {
                 return NotFound();
             }
-            var course = courseService.CourseRepository.FindByCondition(c => c.CourseId == id).First();
+            var course = await courseService.GetFirstOrDefaultAsync(c => c.CourseId == id);
 
             if (course == null)
             {
@@ -57,7 +59,7 @@ namespace UniversityApp.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Edit(int id, [Bind("CourseId,CourseTitle,NoCredits,Year,Semester")] Courses course)
+        public async Task<IActionResult> Edit(Guid id, [Bind("CourseId,CourseTitle,NoCredits,Year,Semester")] Courses course)
         {
             if (id != course.CourseId)
             {
@@ -66,8 +68,8 @@ namespace UniversityApp.Controllers
 
             if (ModelState.IsValid)
             {
-                courseService.CourseRepository.Update(course);
-                var courseFound = courseService.CourseRepository.FindByCondition(c => c.CourseId == course.CourseId);
+                await courseService.UpdateAsync(course);
+                var courseFound = await courseService.GetFirstOrDefaultAsync(c => c.CourseId == course.CourseId);
                 if (courseFound == null)
                 {
                     return NotFound();
@@ -79,13 +81,13 @@ namespace UniversityApp.Controllers
         }
 
         [Authorize(Roles="Secretary")]
-        public IActionResult Delete(int? id)
+        public async Task<IActionResult> Delete(Guid? id)
         {
             if (id == null)
             {
                 return NotFound();
             }
-            var course = courseService.CourseRepository.FindByCondition(c => c.CourseId == id).FirstOrDefault();
+            var course = await courseService.GetFirstOrDefaultAsync(c => c.CourseId == id);
             if (course == null)
             {
                 return NotFound();
@@ -95,10 +97,9 @@ namespace UniversityApp.Controllers
 
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
-        public IActionResult DeleteConfirmed(int id)
+        public async Task<IActionResult> DeleteConfirmed(Guid id)
         {
-            var course = courseService.CourseRepository.FindByCondition(c => c.CourseId == id).First();
-            courseService.CourseRepository.Delete(course);
+            await courseService.DeleteAsync(id);
             return RedirectToAction(nameof(Index));
         }
     }

@@ -8,10 +8,9 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-using UniversityApp.Interfaces;
-using UniversityApp.Interfaces.Services;
-using UniversityApp.Models;
-using UniversityApp.ViewModels;
+using UniversityApp.Core.DomainEntities;
+using UniversityApp.Core.Interfaces.Services;
+using UniversityApp.Core.ViewModels;
 
 namespace UniversityApp.Controllers
 {
@@ -31,19 +30,19 @@ namespace UniversityApp.Controllers
         }
 
         [Authorize(Roles = "Secretary")]
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
-            return View(secretaryService.SecretaryRepository.FindAll().Include(t => t.User).ToList());
+            return View((await secretaryService.GetAsync()).Include(t => t.User).ToList());
         }
 
-        public IActionResult Details(int? id)
+        public async Task<IActionResult> Details(Guid? id)
         {
             if (id == null)
             {
                 return NotFound();
             }
 
-            var secretary = secretaryService.SecretaryRepository.FindByCondition(s => s.SecretaryId == id).FirstOrDefault();
+            var secretary = (await secretaryService.GetAsync(s => s.SecretaryId == id)).FirstOrDefault();
 
             if (secretary == null)
             {
@@ -69,7 +68,7 @@ namespace UniversityApp.Controllers
             if (result.Succeeded)
             {
                 secretary.Image = user.Image;
-                secretaryService.RegisterSecretary(secretary, user.Id);
+                await secretaryService.AddAsync(secretary, user.Id);
                 await userManager.AddToRoleAsync(user, secretary.Role);
                 return RedirectToAction("Index", "Secretaries");
             }
@@ -84,21 +83,21 @@ namespace UniversityApp.Controllers
         }
 
         [Authorize(Roles = "Secretary")]
-        public IActionResult Edit(int? id)
+        public async Task<IActionResult> Edit(Guid? id)
         {
             if (id == null)
             {
                 return NotFound();
             }
 
-            var secretary = secretaryService.SecretaryRepository.FindByCondition(s => s.SecretaryId == id).First();
+            var secretary = (await secretaryService.GetAsync(s => s.SecretaryId == id)).FirstOrDefault();
             return View(secretary);
         }
 
         
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Edit(int id, [Bind("SecretaryId,Cnp,FirstName,LastName,UserId,PhoneNumber,Email")] Secretaries secretary)
+        public async Task<IActionResult> Edit(Guid id, [Bind("SecretaryId,Cnp,FirstName,LastName,UserId,PhoneNumber,Email")] Secretaries secretary)
         {
             if (id != secretary.SecretaryId)
             {
@@ -107,25 +106,25 @@ namespace UniversityApp.Controllers
 
             if (ModelState.IsValid)
             {
-                var secretaryFound = secretaryService.SecretaryRepository.FindByCondition(s => s.SecretaryId == secretary.SecretaryId);
+                var secretaryFound = (await secretaryService.GetAsync(s => s.SecretaryId == secretary.SecretaryId)).FirstOrDefault();
                 if (secretaryFound == null)
                 {
                     return NotFound();
                 }
-                secretaryService.SecretaryRepository.Update(secretary);
+                await secretaryService.UpdateAsync(secretary);
                 return RedirectToAction(nameof(Index));
             }
             return View(secretary);
         }
 
         [Authorize(Roles = "Secretary")]
-        public IActionResult Delete(int? id)
+        public async Task<IActionResult> Delete(Guid? id)
         {
             if (id == null)
             {
                 return NotFound();
             }
-            var secretary = secretaryService.SecretaryRepository.FindByCondition(s => s.SecretaryId == id).FirstOrDefault();
+            var secretary = (await secretaryService.GetAsync(s => s.SecretaryId == id)).FirstOrDefault();
 
             if (secretary == null)
             {
@@ -137,38 +136,38 @@ namespace UniversityApp.Controllers
     
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
-        public IActionResult DeleteConfirmed(int id)
+        public async Task<IActionResult> DeleteConfirmed(Guid id)
         {
-            var secretary = secretaryService.SecretaryRepository.FindByCondition(s => s.SecretaryId == id).First();
-            var user = secretaryService.UserRepository.FindByCondition(u => String.Equals(u.Id, secretary.UserId)).First();
-            secretaryService.SecretaryRepository.Delete(secretary);
-            secretaryService.UserRepository.Delete(user);
+            var secretary = (await secretaryService.GetAsync(s => s.SecretaryId == id)).FirstOrDefault();
+            var user = (await userService.GetAsync(u => String.Equals(u.Id, secretary.UserId))).FirstOrDefault();
+            await secretaryService.DeleteByCnpAsync(secretary.Cnp);
+            await userService.DeleteAsync(new Guid(user.Id));  // i'm not sure about this one
             return RedirectToAction(nameof(Index));
         }
 
-        public IActionResult DeleteByCnp()
+        public async Task<IActionResult> DeleteByCnp()
         {
-            ViewData["SecretaryCnp"] = new SelectList(secretaryService.SecretaryRepository.FindAll(), "Cnp", "Cnp");
+            ViewData["SecretaryCnp"] = new SelectList(await secretaryService.GetAsync(), "Cnp", "Cnp");
             return View();
         }
 
         [Authorize]
         [HttpPost]
-        public IActionResult DeleteByCnp(DeleteSecretaryViewModel model)
+        public async Task<IActionResult> DeleteByCnp(DeleteSecretaryViewModel model)
         {
             if (ModelState.IsValid)
             {
-                secretaryService.DeleteByCnp(model.Cnp);
+                await secretaryService.DeleteByCnpAsync(model.Cnp);
                 return RedirectToAction("Home", "Secretaries");
             }
-            ViewData["SecretaryCnp"] = new SelectList(secretaryService.SecretaryRepository.FindAll(), "Cnp", "Cnp");
+            ViewData["SecretaryCnp"] = new SelectList(await secretaryService.GetAsync(), "Cnp", "Cnp");
             return View(model);
         }
 
-        public IActionResult GetSecretaryNameByCnp(string cnp)
+        public async Task<IActionResult> GetSecretaryNameByCnp(string cnp)
         {
             var secretaryName = "secretary not found";
-            var searchedSecretary = secretaryService.SecretaryRepository.FindByCondition(s => String.Equals(s.Cnp, cnp)).FirstOrDefault();
+            var searchedSecretary = (await secretaryService.GetAsync(s => String.Equals(s.Cnp, cnp))).FirstOrDefault();
             if(searchedSecretary != null)
             {
                 secretaryName = searchedSecretary.LastName + " " + searchedSecretary.FirstName;
@@ -177,13 +176,13 @@ namespace UniversityApp.Controllers
         }
 
         [Authorize]
-        public IActionResult Home([FromServices] IFindLoggedInUser findUserService)
+        public async Task<IActionResult> Home([FromServices] IFindLoggedInUser findUserService)
         {
             var userId = findUserService.GetIdLoggedInUser();
             if (userId != null)
             {
                 // search the student based on his user id
-                var secretary = secretaryService.SecretaryRepository.FindByCondition(s => String.Equals(userId, s.UserId)).FirstOrDefault();
+                var secretary = (await secretaryService.GetAsync(s => String.Equals(userId, s.UserId))).FirstOrDefault();
 
                 if (secretary != null)
                 {

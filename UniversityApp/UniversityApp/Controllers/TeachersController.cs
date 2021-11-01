@@ -8,10 +8,9 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using UniversityApp.Interfaces;
-using UniversityApp.Interfaces.Services;
-using UniversityApp.Models;
-using UniversityApp.ViewModels;
+using UniversityApp.Core.DomainEntities;
+using UniversityApp.Core.Interfaces.Services;
+using UniversityApp.Core.ViewModels;
 
 namespace UniversityApp.Controllers
 {
@@ -21,7 +20,11 @@ namespace UniversityApp.Controllers
         private SignInManager<Users> signManager;
         private UserManager<Users> userManager;
         private readonly IUserService userService;
-        public TeachersController(ITeacherService teacherService, SignInManager<Users> signManager, UserManager<Users> userManager, IUserService userService)
+        public TeachersController(
+            ITeacherService teacherService, 
+            SignInManager<Users> signManager, 
+            UserManager<Users> userManager, 
+            IUserService userService)
         {
             this.teacherService = teacherService;
             this.signManager = signManager;
@@ -30,9 +33,9 @@ namespace UniversityApp.Controllers
         }
 
         [Authorize(Roles = "Secretary")]
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
-            return View(teacherService.TeacherRepository.FindAll().Include(t => t.User).ToList().OrderBy(t => t.LastName));
+            return View((await teacherService.GetAsync()).Include(t => t.User).ToList().OrderBy(t => t.LastName));
         }
 
         [Authorize(Roles = "Secretary")]
@@ -40,7 +43,6 @@ namespace UniversityApp.Controllers
         {
             return View();
         }
-
 
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -51,7 +53,7 @@ namespace UniversityApp.Controllers
             if (result.Succeeded)
             {
                 teacherModel.Image = user.Image;
-                teacherService.RegisterTeacher(teacherModel, user.Id);
+                await teacherService.AddAsync(teacherModel, user.Id);
                 await userManager.AddToRoleAsync(user, teacherModel.Role);
                 return RedirectToAction("Create", "TeachedCourses");
             }
@@ -67,13 +69,13 @@ namespace UniversityApp.Controllers
         }
 
         [Authorize(Roles = "Secretary")]
-        public IActionResult Edit(int? id)
+        public async Task<IActionResult> Edit(Guid? id)
         {
             if (id == null)
             {
                 return NotFound();
             }
-            var teacher = teacherService.TeacherRepository.FindByCondition(t => t.TeacherId == id).First();
+            var teacher = (await teacherService.GetAsync(t => t.TeacherId == id)).FirstOrDefault();
 
             if (teacher == null)
             {
@@ -85,7 +87,7 @@ namespace UniversityApp.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Edit(int id, [Bind("TeacherId,FirstName,LastName,PhoneNumber,Email,Cnp,UserId,Degree")] Teachers teacher)
+        public async Task<IActionResult> Edit(Guid id, [Bind("TeacherId,FirstName,LastName,PhoneNumber,Email,Cnp,UserId,Degree")] Teachers teacher)
         {
             if (id != teacher.TeacherId)
             {
@@ -94,8 +96,8 @@ namespace UniversityApp.Controllers
 
             if (ModelState.IsValid)
             {
-                teacherService.TeacherRepository.Update(teacher);
-                var teacherFound = teacherService.TeacherRepository.FindByCondition(t => t.TeacherId == teacher.TeacherId);
+                await teacherService.UpdateAsync(teacher);
+                var teacherFound = (await teacherService.GetAsync(t => t.TeacherId == teacher.TeacherId)).FirstOrDefault();
                 if (teacherFound == null)
                 {
                     return NotFound();
@@ -106,13 +108,13 @@ namespace UniversityApp.Controllers
         }
 
         [Authorize(Roles = "Secretary")]
-        public IActionResult Delete(int? id)
+        public async Task<IActionResult> Delete(Guid? id)
         {
             if (id == null)
             {
                 return NotFound();
             }
-            var teacher = teacherService.TeacherRepository.FindByCondition(t => t.TeacherId == id).FirstOrDefault();
+            var teacher = (await teacherService.GetAsync(t => t.TeacherId == id)).FirstOrDefault();
             if (teacher == null)
             {
                 return NotFound();
@@ -123,29 +125,29 @@ namespace UniversityApp.Controllers
 
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
-        public IActionResult DeleteConfirmed(int id)
+        public async Task<IActionResult> DeleteConfirmed(Guid id)
         {
-            var teacher = teacherService.TeacherRepository.FindByCondition(t => t.TeacherId == id).First();
-            var user = teacherService.UserRepository.FindByCondition(u => String.Equals(u.Id, teacher.UserId)).First();
-            teacherService.TeacherRepository.Delete(teacher);
-            teacherService.UserRepository.Delete(user);
+            var teacher = (await teacherService.GetAsync(t => t.TeacherId == id)).FirstOrDefault();
+            var user = (await userService.GetAsync(u => String.Equals(u.Id, teacher.UserId))).FirstOrDefault();
+            await teacherService.DeleteAsync(teacher.TeacherId);
+            await userService.DeleteAsync(new Guid(teacher.UserId));
             return RedirectToAction(nameof(Index));
         }
 
-        public IActionResult GetCourses(int id, [FromServices] ITeachedCourseService teachedCourseService)
+        public async Task<IActionResult> GetCourses(Guid id, [FromServices] ITeachedCourseService teachedCourseService)
         {
-            var courses = teachedCourseService.GetTeachedCourses(id);
+            var courses = await teachedCourseService.GetTeachedCoursesAsync(id);
             return View(courses);
         }
 
         [Authorize(Roles = "Teacher")]
-        public IActionResult Home([FromServices]IFindLoggedInUser findUserService)
+        public async Task<IActionResult> Home([FromServices]IFindLoggedInUser findUserService)
         {
             var userId = findUserService.GetIdLoggedInUser();
             if (userId != null)
             {
                 // search the student based on his user id
-                var teacher = teacherService.TeacherRepository.FindByCondition(s => String.Equals(userId, s.UserId)).FirstOrDefault();
+                var teacher = (await teacherService.GetAsync(s => String.Equals(userId, s.UserId))).FirstOrDefault();
 
                 if (teacher != null)
                 {
@@ -156,22 +158,22 @@ namespace UniversityApp.Controllers
         }
 
         [Authorize(Roles = "Teacher")]
-        public IActionResult TeachedCourses([FromServices]ITeachedCourseService teachedCourseService)
+        public async Task<IActionResult> TeachedCourses([FromServices]ITeachedCourseService teachedCourseService)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            var teacher = teacherService.TeacherRepository.FindByCondition(t => String.Equals(t.UserId, userId)).FirstOrDefault();
-            int teacherId = teacher.TeacherId;
-            var courses = teachedCourseService.GetTeachedCourses(teacherId);
+            var teacher = (await teacherService.GetAsync(t => String.Equals(t.UserId, userId))).FirstOrDefault();
+            Guid teacherId = teacher.TeacherId;
+            var courses = await teachedCourseService.GetTeachedCoursesAsync(teacherId);
             return View(courses);
         }
 
-        public IActionResult GetStudents(int id, [FromServices] ICourseService courseService, [FromServices] IEnrollmentService enrollmentService)
+        public async Task<IActionResult> GetStudents(Guid id, [FromServices] ICourseService courseService, [FromServices] IEnrollmentService enrollmentService)
         {
-            var students = courseService.GetEnrolledStudents(id);
+            var students = await courseService.GetEnrolledStudents(id);
             var studentsToBeReturned = new List<EnrolledStudentViewModel>();
             foreach(var student in students)
             {
-                var enrollment = enrollmentService.EnrollmentRepository.FindByCondition(e => e.StudentId == student.StudentId && e.CourseId == id).FirstOrDefault();
+                var enrollment = (await enrollmentService.GetAsync(e => e.StudentId == student.StudentId && e.CourseId == id)).FirstOrDefault();
                 studentsToBeReturned.Add(new EnrolledStudentViewModel
                 {
                     FirstName = student.FirstName,

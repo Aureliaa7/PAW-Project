@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace UniversityApp.Core.DomainEntities
 {
-    public partial class TeachedCourses
+    public partial class TeachedCourse
     {
         [Key]
         public Guid Id { get; set; }
@@ -15,7 +15,7 @@ namespace UniversityApp.Core.DomainEntities
         [Display(Name = "Course ID")]
         public Guid CourseId { get; set; }
 
-        public virtual Courses Course { get; set; }
-        public virtual Teachers Teacher { get; set; }
+        public virtual Course Course { get; set; }
+        public virtual Teacher Teacher { get; set; }
     }
 }

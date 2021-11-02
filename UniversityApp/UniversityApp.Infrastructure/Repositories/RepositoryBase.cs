@@ -8,7 +8,7 @@ using UniversityApp.Interfaces;
 
 namespace UniversityApp.Repositories
 {
-    public abstract class RepositoryBase<T> : IRepositoryBase<T> where T : class
+    public class RepositoryBase<T> : IRepositoryBase<T> where T : class
     {
         protected UniversityAppContext Context { get; set; }
 
@@ -56,11 +56,6 @@ namespace UniversityApp.Repositories
             Context.Set<T>().Remove(entityToBeDeleted);
 
             return entityToBeDeleted;
-        }
-
-        public Task SaveAsync()
-        {
-            return Context.SaveChangesAsync();
         }
 
         public Task<bool> ExistsAsync(Expression<Func<T, bool>> filter)

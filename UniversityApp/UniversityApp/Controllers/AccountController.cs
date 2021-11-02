@@ -12,13 +12,13 @@ namespace UniversityApp.Controllers
 {
     public class AccountController : Controller
     {
-        private readonly SignInManager<Users> signManager;
-        private readonly UserManager<Users> userManager;
+        private readonly SignInManager<User> signManager;
+        private readonly UserManager<User> userManager;
         private readonly IHttpContextAccessor contextAccessor;
         private readonly ILoginService loginService;
         private readonly IImageService imageService;
 
-        public AccountController(SignInManager<Users> signManager, UserManager<Users> userManager, IHttpContextAccessor contextAccessor, 
+        public AccountController(SignInManager<User> signManager, UserManager<User> userManager, IHttpContextAccessor contextAccessor, 
             ILoginService loginService, IImageService imageService)
         {
             this.signManager = signManager;

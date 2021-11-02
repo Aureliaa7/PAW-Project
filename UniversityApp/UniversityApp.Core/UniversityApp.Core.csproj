@@ -6,11 +6,8 @@
 
   <ItemGroup>
     <Compile Remove="DTOs\**" />
-    <Compile Remove="Exceptions\**" />
     <EmbeddedResource Remove="DTOs\**" />
-    <EmbeddedResource Remove="Exceptions\**" />
     <None Remove="DTOs\**" />
-    <None Remove="Exceptions\**" />
   </ItemGroup>
 
   <ItemGroup>

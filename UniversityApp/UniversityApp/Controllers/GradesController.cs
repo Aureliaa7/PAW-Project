@@ -49,7 +49,7 @@ namespace UniversityApp.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("GradeId,EnrollmentId,Value,Date")] Grades grade)
+        public async Task<IActionResult> Create([Bind("GradeId,EnrollmentId,Value,Date")] Grade grade)
         {
             if (ModelState.IsValid)
             {
@@ -78,7 +78,7 @@ namespace UniversityApp.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(Guid id, [Bind("GradeId,EnrollmentId,Value,Date")] Grades grade)
+        public async Task<IActionResult> Edit(Guid id, [Bind("GradeId,EnrollmentId,Value,Date")] Grade grade)
         {
             if (id != grade.GradeId)
             {

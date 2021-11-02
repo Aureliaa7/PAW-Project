@@ -71,7 +71,7 @@ namespace UniversityApp.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(Guid id, [Bind("Id,TeacherId,CourseId")] TeachedCourses teachedCourses)
+        public async Task<IActionResult> Edit(Guid id, [Bind("Id,TeacherId,CourseId")] TeachedCourse teachedCourses)
         {
             if (id != teachedCourses.Id)
             {

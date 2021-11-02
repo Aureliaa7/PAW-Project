@@ -2,8 +2,8 @@
 @using Microsoft.AspNetCore.Identity
 @using UniversityApp.Core.DomainEntities
 
-@inject SignInManager<Users> SignInManager
-@inject UserManager<Users> UserManager
+@inject SignInManager<User> SignInManager
+@inject UserManager<User> UserManager
 
     <ul class="navbar-nav">
         @if (SignInManager.IsSignedIn(User))

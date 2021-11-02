@@ -8,11 +8,10 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using UniversityApp.Core.DomainEntities;
 using UniversityApp.Core.DomainServices;
+using UniversityApp.Core.Interfaces.Repositories;
 using UniversityApp.Core.Interfaces.Services;
 using UniversityApp.Infrastructure.AppDbContext;
-using UniversityApp.Interfaces;
-using UniversityApp.Interfaces.Repositories;
-using UniversityApp.Repositories;
+using UniversityApp.Infrastructure.Repositories;
 
 namespace UniversityApp
 {
@@ -29,16 +28,7 @@ namespace UniversityApp
         {
             services.AddControllersWithViews();
 
-            services.AddScoped<IStudentRepository, StudentRepository>();
-            services.AddScoped<ISecretaryRepository, SecretaryRepository>();
-            services.AddScoped<ITeacherRepository, TeacherRepository>();
-            services.AddScoped<ICourseRepository, CourseRepository>();
-            services.AddScoped<IEnrollmentRepository, EnrollmentRepository>();
-            services.AddScoped<ITeachedCourseRepository, TeachedCourseRepository>();
-            services.AddScoped<IGradeRepository, GradeRepository>();
-            services.AddScoped<IUserRepository, UserRepository>();
-
-
+            services.AddScoped<IUnitOfWork, UnitOfWork>();
             services.AddScoped<IStudentService, StudentService>();
             services.AddScoped<ISecretaryService, SecretaryService>();
             services.AddScoped<ITeacherService, TeacherService>();
@@ -51,18 +41,14 @@ namespace UniversityApp
             services.AddScoped<ILoginService, LoginService>();
             services.AddScoped<IImageService, ImageService>();
 
-
-       //     services.AddDbContext<UniversityAppContext>(options =>
-       //options.UseSqlServer(Configuration.GetConnectionString("MyConnectionString")));
-
             services.AddDbContext<UniversityAppContext>(options =>
               options.UseSqlServer(
                   Configuration.GetConnectionString("MyConnectionString"),
                   b => b.MigrationsAssembly("UniversityApp.Infrastructure"))
             );
 
-            services.AddIdentity<Users, IdentityRole>()
-       .AddEntityFrameworkStores<UniversityAppContext>();
+            services.AddIdentity<User, IdentityRole>()
+            .AddEntityFrameworkStores<UniversityAppContext>();
 
             services.Configure<IdentityOptions>(options =>
             {
@@ -88,7 +74,6 @@ namespace UniversityApp
                 options.Cookie.HttpOnly = true;
                 options.Cookie.IsEssential = true;
             });
-
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)

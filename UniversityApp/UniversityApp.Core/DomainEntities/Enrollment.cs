@@ -5,11 +5,11 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace UniversityApp.Core.DomainEntities
 {
-    public partial class Enrollments
+    public partial class Enrollment
     {
-        public Enrollments()
+        public Enrollment()
         {
-            Grades = new HashSet<Grades>();
+            Grades = new HashSet<Grade>();
         }
 
         [Key]
@@ -22,8 +22,8 @@ namespace UniversityApp.Core.DomainEntities
         [Display(Name = "Student ID")]
         public Guid StudentId { get; set; }
 
-        public virtual Courses Course { get; set; }
-        public virtual Students Student { get; set; }
-        public virtual ICollection<Grades> Grades { get; set; }
+        public virtual Course Course { get; set; }
+        public virtual Student Student { get; set; }
+        public virtual ICollection<Grade> Grades { get; set; }
     }
 }

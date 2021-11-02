@@ -31,7 +31,7 @@ namespace UniversityApp.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(
-            [Bind("CourseId,CourseTitle,NoCredits,Year,Semester")] Courses courses)
+            [Bind("CourseId,CourseTitle,NoCredits,Year,Semester")] Course courses)
         {
             if (ModelState.IsValid)
             {
@@ -59,7 +59,7 @@ namespace UniversityApp.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(Guid id, [Bind("CourseId,CourseTitle,NoCredits,Year,Semester")] Courses course)
+        public async Task<IActionResult> Edit(Guid id, [Bind("CourseId,CourseTitle,NoCredits,Year,Semester")] Course course)
         {
             if (id != course.CourseId)
             {

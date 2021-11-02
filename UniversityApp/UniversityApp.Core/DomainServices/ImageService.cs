@@ -6,7 +6,7 @@ namespace UniversityApp.Core.DomainServices
 {
     public class ImageService : IImageService
     {
-        public string GetUserProfileImage(Users user)
+        public string GetUserProfileImage(User user)
         {
             string imageDataURL = "";
             if (user.Image != null)

@@ -9,7 +9,7 @@ namespace UniversityApp.Core.Interfaces.Services
 {
     public interface IEnrollmentService
     {
-        Task<IEnumerable<Enrollments>> GetEnrollmentsForStudentAsync(Guid studentId);
+        Task<IEnumerable<Enrollment>> GetEnrollmentsForStudentAsync(Guid studentId);
 
         Task<IEnumerable<EnrollmentViewModel>> GetAllEnrollmentsAsync();
 
@@ -17,8 +17,8 @@ namespace UniversityApp.Core.Interfaces.Services
 
         Task CreateEnrollmentAsync(EnrollmentViewModel model);
 
-        Task<Enrollments> GetFirstOrDefaultAsync(Expression<Func<Enrollments, bool>> filter);
+        Task<Enrollment> GetFirstOrDefaultAsync(Expression<Func<Enrollment, bool>> filter);
 
-        Task<IEnumerable<Enrollments>> GetAsync(Expression<Func<Enrollments, bool>> filter = null);
+        Task<IEnumerable<Enrollment>> GetAsync(Expression<Func<Enrollment, bool>> filter = null);
     }
 }

@@ -19,7 +19,7 @@ namespace UniversityApp.Core.DomainServices
         {
             this.httpContextAccessor = httpContextAccessor;
         }
-        public async Task Login(Users user, UserManager<Users> userManager)
+        public async Task Login(User user, UserManager<User> userManager)
         {
             var identity = new ClaimsIdentity(IdentityConstants.ApplicationScheme);
             identity.AddClaim(new Claim(ClaimTypes.NameIdentifier, Convert.ToString(user.Id)));

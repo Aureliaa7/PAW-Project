@@ -5,11 +5,11 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace UniversityApp.Core.DomainEntities
 {
-    public partial class Students
+    public partial class Student
     {
-        public Students()
+        public Student()
         {
-            Enrollments = new HashSet<Enrollments>();
+            Enrollments = new HashSet<Enrollment>();
         }
 
         [Key]
@@ -35,7 +35,7 @@ namespace UniversityApp.Core.DomainEntities
         [Display(Name = "Group Name")]
         public string GroupName { get; set; }
 
-        public virtual Users User { get; set; }
-        public virtual ICollection<Enrollments> Enrollments { get; set; }
+        public virtual User User { get; set; }
+        public virtual ICollection<Enrollment> Enrollments { get; set; }
     }
 }

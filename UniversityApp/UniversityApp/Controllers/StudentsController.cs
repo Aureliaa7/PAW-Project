@@ -17,10 +17,10 @@ namespace UniversityApp.Controllers
     public class StudentsController : Controller
     {
         private IStudentService studentService;
-        private SignInManager<Users> signManager;
-        private UserManager<Users> userManager;
+        private SignInManager<User> signManager;
+        private UserManager<User> userManager;
         private IUserService userService;
-        public StudentsController(IStudentService studentService, SignInManager<Users> signManager, UserManager<Users> userManager, IUserService userService)
+        public StudentsController(IStudentService studentService, SignInManager<User> signManager, UserManager<User> userManager, IUserService userService)
         {
             this.studentService = studentService;
             this.signManager = signManager;
@@ -103,7 +103,7 @@ namespace UniversityApp.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(Guid id, [Bind("StudentId,UserId,FirstName,LastName,Cnp,PhoneNumber,Email,StudyYear,Section,GroupName")] Students student)
+        public async Task<IActionResult> Edit(Guid id, [Bind("StudentId,UserId,FirstName,LastName,Cnp,PhoneNumber,Email,StudyYear,Section,GroupName")] Student student)
         {
             if (id != student.StudentId)
             {
@@ -192,7 +192,7 @@ namespace UniversityApp.Controllers
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             var userName = User.FindFirstValue(ClaimTypes.Name);
 
-            Users applicationUser =  await userManager.GetUserAsync(User);
+            User applicationUser =  await userManager.GetUserAsync(User);
             string userEmail = applicationUser?.Email;
             if(applicationUser != null)
             {

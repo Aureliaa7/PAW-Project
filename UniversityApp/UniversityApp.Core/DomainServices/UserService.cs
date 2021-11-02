@@ -6,23 +6,24 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 using UniversityApp.Core.DomainEntities;
+using UniversityApp.Core.Exceptions;
+using UniversityApp.Core.Interfaces.Repositories;
 using UniversityApp.Core.Interfaces.Services;
-using UniversityApp.Interfaces.Repositories;
 
 namespace UniversityApp.Core.DomainServices
 {
     public class UserService : IUserService
     {
-        private readonly IUserRepository userRepository;
+        private readonly IUnitOfWork unitOfWork;
 
-        public UserService(IUserRepository userRepository)
+        public UserService(IUnitOfWork unitOfWork)
         {
-            this.userRepository = userRepository;
+            this.unitOfWork = unitOfWork;
         }
 
-        public Users CreateUser(List<IFormFile> images, string userName, string email, string phoneNumber)
+        public User CreateUser(List<IFormFile> images, string userName, string email, string phoneNumber)
         {
-            var user = new Users
+            var user = new User
             {
                 UserName = userName,
                 Email = email,
@@ -44,19 +45,19 @@ namespace UniversityApp.Core.DomainServices
 
         public async Task DeleteAsync(Guid id)
         {
-            bool userExists = await userRepository.ExistsAsync(u => u.Id == id.ToString());
+            bool userExists = await unitOfWork.UsersRepository.ExistsAsync(u => u.Id == id.ToString());
             if (!userExists)
             {
-                //TODO throw an error
+                throw new EntityNotFoundException($"The user with the id {id} was not found!");
             }
 
-            await userRepository.DeleteAsync(id);
-            await userRepository.SaveAsync();
+            await unitOfWork.UsersRepository.DeleteAsync(id);
+            await unitOfWork.SaveChangesAsync();
         }
 
-        public async Task<IEnumerable<Users>> GetAsync(Expression<Func<Users, bool>> filter = null)
+        public async Task<IEnumerable<User>> GetAsync(Expression<Func<User, bool>> filter = null)
         {
-            return (await userRepository.FindAsync(filter)).ToList();
+            return (await unitOfWork.UsersRepository.FindAsync(filter)).ToList();
         }
     }
 }

@@ -6,12 +6,12 @@ namespace UniversityApp.Core.DomainEntities
 {
     // why are these classes partial?? I don't remember why I made them partial... it doesn't make sense now...
 
-    public partial class Courses
+    public partial class Course
     {
-        public Courses()
+        public Course()
         {
-            Enrollments = new HashSet<Enrollments>();
-            TeachedCourses = new HashSet<TeachedCourses>();
+            Enrollments = new HashSet<Enrollment>();
+            TeachedCourses = new HashSet<TeachedCourse>();
         }
 
         [Key]
@@ -26,7 +26,7 @@ namespace UniversityApp.Core.DomainEntities
         public int Year { get; set; }
         public int Semester { get; set; }
 
-        public virtual ICollection<Enrollments> Enrollments { get; set; }
-        public virtual ICollection<TeachedCourses> TeachedCourses { get; set; }
+        public virtual ICollection<Enrollment> Enrollments { get; set; }
+        public virtual ICollection<TeachedCourse> TeachedCourses { get; set; }
     }
 }

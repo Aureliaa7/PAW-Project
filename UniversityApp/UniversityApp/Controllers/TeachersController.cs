@@ -17,13 +17,13 @@ namespace UniversityApp.Controllers
     public class TeachersController : Controller
     {
         private readonly ITeacherService teacherService;
-        private SignInManager<Users> signManager;
-        private UserManager<Users> userManager;
+        private SignInManager<User> signManager;
+        private UserManager<User> userManager;
         private readonly IUserService userService;
         public TeachersController(
             ITeacherService teacherService, 
-            SignInManager<Users> signManager, 
-            UserManager<Users> userManager, 
+            SignInManager<User> signManager, 
+            UserManager<User> userManager, 
             IUserService userService)
         {
             this.teacherService = teacherService;
@@ -87,7 +87,7 @@ namespace UniversityApp.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(Guid id, [Bind("TeacherId,FirstName,LastName,PhoneNumber,Email,Cnp,UserId,Degree")] Teachers teacher)
+        public async Task<IActionResult> Edit(Guid id, [Bind("TeacherId,FirstName,LastName,PhoneNumber,Email,Cnp,UserId,Degree")] Teacher teacher)
         {
             if (id != teacher.TeacherId)
             {

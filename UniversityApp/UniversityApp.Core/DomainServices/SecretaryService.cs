@@ -2,6 +2,8 @@
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 using UniversityApp.Core.DomainEntities;
+using UniversityApp.Core.Exceptions;
+using UniversityApp.Core.Interfaces.Repositories;
 using UniversityApp.Core.Interfaces.Services;
 using UniversityApp.Core.ViewModels;
 using UniversityApp.Interfaces;
@@ -10,17 +12,17 @@ namespace UniversityApp.Core.DomainServices
 {
     public class SecretaryService : ISecretaryService
     {
-        private readonly ISecretaryRepository secretaryRepository;
+        private readonly IUnitOfWork unitOfWork;
 
-        public SecretaryService(ISecretaryRepository secretaryRepository)
+        public SecretaryService(IUnitOfWork unitOfWork)
         {
-            this.secretaryRepository = secretaryRepository;
+            this.unitOfWork = unitOfWork;
         }
 
         public async Task AddAsync(SecretaryRegistrationViewModel secretaryModel, string userId)
         {
 
-            Secretaries secretary = new Secretaries
+            Secretary secretary = new Secretary
             {
                 UserId = userId,
                 FirstName = secretaryModel.FirstName,
@@ -29,41 +31,41 @@ namespace UniversityApp.Core.DomainServices
                 PhoneNumber = secretaryModel.PhoneNumber,
                 Email = secretaryModel.Email
             };
-            await secretaryRepository.CreateAsync(secretary);
-            await secretaryRepository.SaveAsync();
+            await unitOfWork.SecretariesRepository.CreateAsync(secretary);
+            await unitOfWork.SaveChangesAsync();
         }
 
         public async Task DeleteByCnpAsync(string cnp)
         {
-            bool secretaryExists = await secretaryRepository.ExistsAsync(s => s.Cnp == cnp);
+            bool secretaryExists = await unitOfWork.SecretariesRepository.ExistsAsync(s => s.Cnp == cnp);
             if (!secretaryExists)
             {
-                //TODO throw a custom exception
+                throw new EntityNotFoundException($"The searched secretary was not found!");
             }
 
-            var secretaryId = (await secretaryRepository
+            var secretaryId = (await unitOfWork.SecretariesRepository
                 .FindAsync(s => s.Cnp == cnp))
                 .Select(x => x.SecretaryId)
                 .FirstOrDefault();
-            await secretaryRepository.DeleteAsync(secretaryId);
-            await secretaryRepository.SaveAsync();
+            await unitOfWork.SecretariesRepository.DeleteAsync(secretaryId);
+            await unitOfWork.SaveChangesAsync();
         }
 
-        public Task<IQueryable<Secretaries>> GetAsync(Expression<System.Func<Secretaries, bool>> filter = null)
+        public Task<IQueryable<Secretary>> GetAsync(Expression<System.Func<Secretary, bool>> filter = null)
         {
-            return secretaryRepository.FindAsync(filter);
+            return unitOfWork.SecretariesRepository.FindAsync(filter);
         }
 
-        public async Task UpdateAsync(Secretaries secretary)
+        public async Task UpdateAsync(Secretary secretary)
         {
-            bool secretaryExists = await secretaryRepository.ExistsAsync(s => s.SecretaryId == secretary.SecretaryId);
+            bool secretaryExists = await unitOfWork.SecretariesRepository.ExistsAsync(s => s.SecretaryId == secretary.SecretaryId);
             if (!secretaryExists)
             {
-                //TODO throw a custom exception
+                throw new EntityNotFoundException($"The searched secretary was not found!");
             }
 
-            await secretaryRepository.UpdateAsync(secretary);
-            await secretaryRepository.SaveAsync();
+            await unitOfWork.SecretariesRepository.UpdateAsync(secretary);
+            await unitOfWork.SaveChangesAsync();
         }
     }
 }

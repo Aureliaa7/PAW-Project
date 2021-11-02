@@ -11,9 +11,9 @@ namespace UniversityApp.Core.Interfaces.Services
     {
         Task AddAsync(TeacherRegistrationViewModel teacherModel, string userId);
 
-        Task<IQueryable<Teachers>> GetAsync(Expression<Func<Teachers, bool>> filter = null);
+        Task<IQueryable<Teacher>> GetAsync(Expression<Func<Teacher, bool>> filter = null);
 
-        Task UpdateAsync(Teachers teacher);
+        Task UpdateAsync(Teacher teacher);
 
         Task DeleteAsync(Guid id);
     }

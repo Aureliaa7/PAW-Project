@@ -15,8 +15,8 @@ namespace UniversityApp.Core.Interfaces.Services
 
         Task DeleteAsync(Guid id);
 
-        Task<IEnumerable<Students>> GetAsync(Expression<Func<Students, bool>> filter = null);
+        Task<IEnumerable<Student>> GetAsync(Expression<Func<Student, bool>> filter = null);
 
-        Task UpdateAsync(Students student);
+        Task UpdateAsync(Student student);
     }
 }

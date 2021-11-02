@@ -13,8 +13,8 @@ namespace UniversityApp.Core.Interfaces.Services
 
         Task DeleteByCnpAsync(string cnp);
 
-        Task<IQueryable<Secretaries>> GetAsync(Expression<Func<Secretaries, bool>> filter = null);
+        Task<IQueryable<Secretary>> GetAsync(Expression<Func<Secretary, bool>> filter = null);
 
-        Task UpdateAsync(Secretaries secretary);
+        Task UpdateAsync(Secretary secretary);
     }
 }

@@ -9,12 +9,12 @@ namespace UniversityApp.Core.Interfaces.Services
 {
     public interface ITeachedCourseService
     {
-        Task<IEnumerable<Courses>> GetTeachedCoursesAsync(Guid teacherId); // this will be used for secretary in order to see the teached courses of a teacher
+        Task<IEnumerable<Course>> GetTeachedCoursesAsync(Guid teacherId); // this will be used for secretary in order to see the teached courses of a teacher
        
         Task AssignCourseAsync(CourseAssignmentViewModel model);
 
-        Task<IEnumerable<TeachedCourses>> GetAsync(Expression<Func<TeachedCourses, bool>> filter = null);
+        Task<IEnumerable<TeachedCourse>> GetAsync(Expression<Func<TeachedCourse, bool>> filter = null);
 
-        Task UpdateAsync(TeachedCourses teachedCourse);
+        Task UpdateAsync(TeachedCourse teachedCourse);
     }
 }

@@ -17,11 +17,11 @@ namespace UniversityApp.Controllers
     public class SecretariesController : Controller
     {
         private readonly ISecretaryService secretaryService;
-        private SignInManager<Users> signManager;
-        private UserManager<Users> userManager;
+        private SignInManager<User> signManager;
+        private UserManager<User> userManager;
         private readonly IUserService userService;
 
-        public SecretariesController(ISecretaryService secretaryService, SignInManager<Users> signManager, UserManager<Users> userManager, IUserService userService)
+        public SecretariesController(ISecretaryService secretaryService, SignInManager<User> signManager, UserManager<User> userManager, IUserService userService)
         {
             this.secretaryService = secretaryService;
             this.signManager = signManager;
@@ -97,7 +97,7 @@ namespace UniversityApp.Controllers
         
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(Guid id, [Bind("SecretaryId,Cnp,FirstName,LastName,UserId,PhoneNumber,Email")] Secretaries secretary)
+        public async Task<IActionResult> Edit(Guid id, [Bind("SecretaryId,Cnp,FirstName,LastName,UserId,PhoneNumber,Email")] Secretary secretary)
         {
             if (id != secretary.SecretaryId)
             {

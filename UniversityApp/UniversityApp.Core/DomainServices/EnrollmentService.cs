@@ -4,64 +4,56 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 using UniversityApp.Core.DomainEntities;
+using UniversityApp.Core.Exceptions;
+using UniversityApp.Core.Interfaces.Repositories;
 using UniversityApp.Core.Interfaces.Services;
 using UniversityApp.Core.ViewModels;
-using UniversityApp.Interfaces;
-using UniversityApp.Interfaces.Repositories;
 
 namespace UniversityApp.Core.DomainServices
 {
     public class EnrollmentService : IEnrollmentService
     {
-        private readonly IEnrollmentRepository enrollmentRepository;
-        private readonly ICourseRepository courseRepository;
-        private readonly IStudentRepository studentRepository;
+        private readonly IUnitOfWork unitOfWork;
 
-        public EnrollmentService(
-            IEnrollmentRepository enrollmentRepository,
-            ICourseRepository courseRepository,
-            IStudentRepository studentRepository
-            )
+        public EnrollmentService(IUnitOfWork unitOfWork)
         {
-            this.enrollmentRepository = enrollmentRepository;
-            this.courseRepository = courseRepository;
-            this.studentRepository = studentRepository;
+            this.unitOfWork = unitOfWork;
         }
 
-        public async Task<IEnumerable<Enrollments>> GetEnrollmentsForStudentAsync(Guid studentId)
+        public async Task<IEnumerable<Enrollment>> GetEnrollmentsForStudentAsync(Guid studentId)
         {
-            return (await enrollmentRepository.FindAsync(e => e.StudentId == studentId)).ToList();
+            return (await unitOfWork.EnrollmentsRepository.FindAsync(e => e.StudentId == studentId)).ToList();
         }
 
         public async Task DeleteEnrollmentAsync(DeleteEnrollmentViewModel model)
         {
-            var course = (await courseRepository.FindAsync(c => String.Equals(c.CourseTitle, model.CourseTitle))).FirstOrDefault();
-            var enrolledStudent = (await studentRepository.FindAsync(s => String.Equals(s.Cnp, model.StudentCNP))).FirstOrDefault();
+            var course = (await unitOfWork.CoursesRepository.FindAsync(c => String.Equals(c.CourseTitle, model.CourseTitle))).FirstOrDefault();
+            var enrolledStudent = (await unitOfWork.StudentsRepository.FindAsync(s => String.Equals(s.Cnp, model.StudentCNP))).FirstOrDefault();
 
             if (course != null && enrolledStudent != null)
             {
-                var enrollment = (await enrollmentRepository
+                var enrollment = (await unitOfWork.EnrollmentsRepository
                     .FindAsync(e => (e.CourseId == course.CourseId) && 
                         (e.StudentId == enrolledStudent.StudentId)))
                     .FirstOrDefault();
                 if (enrollment != null)
                 {
-                    await enrollmentRepository.DeleteAsync(enrollment.EnrollmentId);
-                    await enrollmentRepository.SaveAsync();
+                    await unitOfWork.EnrollmentsRepository.DeleteAsync(enrollment.EnrollmentId);
+                    await unitOfWork.SaveChangesAsync();
                 }
             }
         }
 
         public async Task<IEnumerable<EnrollmentViewModel>> GetAllEnrollmentsAsync()
         {
-            var enrollments = (await enrollmentRepository.FindAsync()).ToList();
+            var enrollments = (await unitOfWork.EnrollmentsRepository.FindAsync()).ToList();
             var enrollmentModels = new List<EnrollmentViewModel>();
             if (enrollments != null)
             {
                 foreach (var enrollment in enrollments)
                 {
-                    Courses course = (await courseRepository.FindAsync(c => c.CourseId == enrollment.CourseId)).FirstOrDefault();
-                    Students student = (await studentRepository.FindAsync(s => String.Equals(s.StudentId, enrollment.StudentId))).FirstOrDefault();
+                    Course course = (await unitOfWork.CoursesRepository.FindAsync(c => c.CourseId == enrollment.CourseId)).FirstOrDefault();
+                    Student student = (await unitOfWork.StudentsRepository.FindAsync(s => String.Equals(s.StudentId, enrollment.StudentId))).FirstOrDefault();
                     if (course != null && student != null)
                     {
                         enrollmentModels.Add(new EnrollmentViewModel
@@ -79,33 +71,33 @@ namespace UniversityApp.Core.DomainServices
 
         public async Task CreateEnrollmentAsync(EnrollmentViewModel model)
         {
-            Courses course = (await courseRepository.FindAsync(c => String.Equals(c.CourseTitle, model.CourseTitle))).FirstOrDefault();
-            Students student = (await studentRepository.FindAsync(s => String.Equals(s.Cnp, model.StudentCnp))).FirstOrDefault();
+            Course course = (await unitOfWork.CoursesRepository.FindAsync(c => String.Equals(c.CourseTitle, model.CourseTitle))).FirstOrDefault();
+            Student student = (await unitOfWork.StudentsRepository.FindAsync(s => String.Equals(s.Cnp, model.StudentCnp))).FirstOrDefault();
             if (course != null && student != null)
             {
-                var foundEnrollment = (await enrollmentRepository.FindAsync(e => (e.CourseId == course.CourseId) 
+                var foundEnrollment = (await unitOfWork.EnrollmentsRepository.FindAsync(e => (e.CourseId == course.CourseId) 
                 && (String.Equals(e.Student.Cnp, student.Cnp)))).FirstOrDefault();
                 if(foundEnrollment == null)
                 {
-                    Enrollments enrollment = new Enrollments
+                    Enrollment enrollment = new Enrollment
                     {
                         CourseId = course.CourseId,
                         StudentId = student.StudentId
                     };
-                    await enrollmentRepository.CreateAsync(enrollment);
-                    await enrollmentRepository.SaveAsync();
+                    await unitOfWork.EnrollmentsRepository.CreateAsync(enrollment);
+                    await unitOfWork.SaveChangesAsync();
                 }
             }
         }
 
-        public async Task<Enrollments> GetFirstOrDefaultAsync(Expression<Func<Enrollments, bool>> filter)
+        public async Task<Enrollment> GetFirstOrDefaultAsync(Expression<Func<Enrollment, bool>> filter)
         {
-            return (await enrollmentRepository.FindAsync(filter)).FirstOrDefault();
+            return (await unitOfWork.EnrollmentsRepository.FindAsync(filter)).FirstOrDefault();
         }
 
-        public async Task<IEnumerable<Enrollments>> GetAsync(Expression<Func<Enrollments, bool>> filter = null)
+        public async Task<IEnumerable<Enrollment>> GetAsync(Expression<Func<Enrollment, bool>> filter = null)
         {
-            return (await enrollmentRepository.FindAsync(filter)).ToList();
+            return (await unitOfWork.EnrollmentsRepository.FindAsync(filter)).ToList();
         }
     }
 }

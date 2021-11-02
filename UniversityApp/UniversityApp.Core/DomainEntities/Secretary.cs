@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace UniversityApp.Core.DomainEntities
 {
-    public partial class Secretaries
+    public partial class Secretary
     {
         [Key]
         [Display(Name = "ID")]
@@ -24,6 +24,6 @@ namespace UniversityApp.Core.DomainEntities
         public string PhoneNumber { get; set; }
         public string Email { get; set; }
 
-        public virtual Users User { get; set; }
+        public virtual User User { get; set; }
     }
 }

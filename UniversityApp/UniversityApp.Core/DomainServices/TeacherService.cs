@@ -3,24 +3,25 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 using UniversityApp.Core.DomainEntities;
+using UniversityApp.Core.Exceptions;
+using UniversityApp.Core.Interfaces.Repositories;
 using UniversityApp.Core.Interfaces.Services;
 using UniversityApp.Core.ViewModels;
-using UniversityApp.Interfaces;
 
 namespace UniversityApp.Core.DomainServices
 {
     public class TeacherService : ITeacherService
     {
-        private readonly ITeacherRepository teacherRepository;
+        private readonly IUnitOfWork unitOfWork;
 
-        public TeacherService(ITeacherRepository teacherRepository)
+        public TeacherService(IUnitOfWork unitOfWork)
         {
-            this.teacherRepository = teacherRepository;
+            this.unitOfWork = unitOfWork;
         }
 
         public async Task AddAsync(TeacherRegistrationViewModel teacherModel, string userId)
         {
-            Teachers teacher = new Teachers
+            Teacher teacher = new Teacher
             {
                 UserId = userId,
                 FirstName = teacherModel.FirstName,
@@ -30,35 +31,35 @@ namespace UniversityApp.Core.DomainServices
                 Email = teacherModel.Email,
                 Degree = teacherModel.Degree
             };
-            await teacherRepository.CreateAsync(teacher);
-            await teacherRepository.SaveAsync();
+            await unitOfWork.TeachersRepository.CreateAsync(teacher);
+            await unitOfWork.SaveChangesAsync();
         }
 
         public async Task DeleteAsync(Guid id)
         {
-            bool teacherExists = await teacherRepository.ExistsAsync(t => t.TeacherId == id);
+            bool teacherExists = await unitOfWork.TeachersRepository.ExistsAsync(t => t.TeacherId == id);
             if (!teacherExists)
             {
-                //TODO throw an exception
+                throw new EntityNotFoundException($"The teacher with the id {id} was not found!");
             }
-            await teacherRepository.DeleteAsync(id);
-            await teacherRepository.SaveAsync();
+            await unitOfWork.TeachersRepository.DeleteAsync(id);
+            await unitOfWork.SaveChangesAsync();
         }
 
-        public async Task<IQueryable<Teachers>> GetAsync(Expression<Func<Teachers, bool>> filter = null)
+        public async Task<IQueryable<Teacher>> GetAsync(Expression<Func<Teacher, bool>> filter = null)
         {
-            return await teacherRepository.FindAsync(filter);
+            return await unitOfWork.TeachersRepository.FindAsync(filter);
         }
 
-        public async Task UpdateAsync(Teachers teacher)
+        public async Task UpdateAsync(Teacher teacher)
         {
-            bool teacherExists = await teacherRepository.ExistsAsync(t => t.TeacherId == teacher.TeacherId);
+            bool teacherExists = await unitOfWork.TeachersRepository.ExistsAsync(t => t.TeacherId == teacher.TeacherId);
             if (!teacherExists)
             {
-                //TODO throw an exception
+                throw new EntityNotFoundException($"The teached with the id {teacher.TeacherId} was not found!");
             }
-            await teacherRepository.UpdateAsync(teacher);
-            await teacherRepository.SaveAsync();
+            await unitOfWork.TeachersRepository.UpdateAsync(teacher);
+            await unitOfWork.SaveChangesAsync();
         }
     }
 }

@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace UniversityApp.Core.DomainEntities
 {
-    public partial class Grades
+    public partial class Grade
     {
         [Key]
         [Display(Name = "Grade ID")]
@@ -18,6 +18,6 @@ namespace UniversityApp.Core.DomainEntities
         [DisplayFormat(DataFormatString = "{0:yyyy-MM-dd}", ApplyFormatInEditMode = true)]
         public DateTime? Date { get; set; }
 
-        public virtual Enrollments Enrollment { get; set; }
+        public virtual Enrollment Enrollment { get; set; }
     }
 }

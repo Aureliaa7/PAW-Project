@@ -9,9 +9,9 @@ namespace UniversityApp.Core.Interfaces.Services
 {
     public interface IUserService
     {
-        Users CreateUser(List<IFormFile> image, string userName, string email, string phoneNumber);
+        User CreateUser(List<IFormFile> image, string userName, string email, string phoneNumber);
 
-        Task<IEnumerable<Users>> GetAsync(Expression<Func<Users, bool>> filter = null);
+        Task<IEnumerable<User>> GetAsync(Expression<Func<User, bool>> filter = null);
 
         Task DeleteAsync(Guid id);
     }

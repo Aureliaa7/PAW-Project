@@ -6,6 +6,6 @@ namespace UniversityApp.Core.Interfaces.Services
 {
     public interface ILoginService
     {
-        public Task Login(Users user, UserManager<Users> userManager);
+        public Task Login(User user, UserManager<User> userManager);
     }
 }

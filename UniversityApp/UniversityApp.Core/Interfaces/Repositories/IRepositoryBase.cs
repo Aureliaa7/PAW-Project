@@ -18,7 +18,5 @@ namespace UniversityApp.Interfaces
         Task<T> DeleteAsync(Guid id);
 
         Task<bool> ExistsAsync(Expression<Func<T, bool>> filter);
-
-        Task SaveAsync();
     }
 }

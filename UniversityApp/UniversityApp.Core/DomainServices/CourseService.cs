@@ -1,88 +1,83 @@
-﻿using Microsoft.EntityFrameworkCore;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 using UniversityApp.Core.DomainEntities;
+using UniversityApp.Core.Exceptions;
+using UniversityApp.Core.Interfaces.Repositories;
 using UniversityApp.Core.Interfaces.Services;
-using UniversityApp.Interfaces.Repositories;
 
 namespace UniversityApp.Core.DomainServices
 {
     public class CourseService : ICourseService
     {
-        private readonly IEnrollmentRepository enrollmentRepository;
-        private readonly ICourseRepository courseRepository;
-
-        public CourseService(IEnrollmentRepository enrollmentRepository, ICourseRepository courseRepository)
+        private readonly IUnitOfWork unitOfWork;
+        public CourseService(IUnitOfWork unitOfWork)
         {
-            this.enrollmentRepository = enrollmentRepository;
-            this.courseRepository = courseRepository;
+            this.unitOfWork = unitOfWork;
         }
 
-        public async Task<Courses> AddAsync(Courses course)
+        public async Task<Course> AddAsync(Course course)
         {
-            bool courseExists = await courseRepository.ExistsAsync(c => c.CourseTitle == course.CourseTitle);
+            bool courseExists = await unitOfWork.CoursesRepository.ExistsAsync(c => c.CourseTitle == course.CourseTitle);
 
             if (courseExists)
             {
-                //TODO create and throw a custom exception
-                throw new Exception("A course with the same title already exists!");
+                throw new DuplicatedEntityException("A course with the same title already exists!");
             }
 
-            var addedCourse = await courseRepository.CreateAsync(course);
-            await courseRepository.SaveAsync();
+            var addedCourse = await unitOfWork.CoursesRepository.CreateAsync(course);
+            await unitOfWork.SaveChangesAsync(); ;
 
             return addedCourse;
         }
 
         public async Task DeleteAsync(Guid id)
         {
-            bool courseExists = await courseRepository.ExistsAsync(c => c.CourseId == id);
+            await CheckIfCourseExistsAsync(id);
 
-            if (!courseExists)
-            {
-                //TODO create and throw a custom exception
-                throw new Exception($"The course with the id {id} was not found!");
-            }
-
-            await courseRepository.DeleteAsync(id);
-            await courseRepository.SaveAsync();
+            await unitOfWork.CoursesRepository.DeleteAsync(id);
+            await unitOfWork.SaveChangesAsync();
         }
 
-        public async Task<Courses> UpdateAsync(Courses course)
+        public async Task<Course> UpdateAsync(Course course)
         {
-            bool courseExists = await courseRepository.ExistsAsync(c => c.CourseId == course.CourseId);
+            await CheckIfCourseExistsAsync(course.CourseId);
 
-            if (!courseExists)
-            {
-                //TODO create and throw a custom exception
-                throw new Exception($"The course with the id {course.CourseId} was not found!");
-            }
-
-            var updatedCourse = await courseRepository.UpdateAsync(course);
-            await courseRepository.SaveAsync();
+            var updatedCourse = await unitOfWork.CoursesRepository.UpdateAsync(course);
+            await unitOfWork.SaveChangesAsync();
 
             return updatedCourse;
         }
 
-        public async Task<IEnumerable<Courses>> GetAsync(Expression<Func<Courses, bool>> filter = null)
+        public async Task<IEnumerable<Course>> GetAsync(Expression<Func<Course, bool>> filter = null)
         {
-            return (await courseRepository.FindAsync(filter)).ToList();
+            return (await unitOfWork.CoursesRepository.FindAsync(filter)).ToList();
         }
 
         // returns all the students taking a certain course
-        public async Task<IEnumerable<Students>> GetEnrolledStudents(Guid courseId)
+        public async Task<IEnumerable<Student>> GetEnrolledStudents(Guid courseId)
         {
-            var enrollments = await enrollmentRepository.FindAsync(enrollment => enrollment.CourseId == courseId);
+            await CheckIfCourseExistsAsync(courseId);
+            var enrollments = await unitOfWork.EnrollmentsRepository.FindAsync(enrollment => enrollment.CourseId == courseId);
             var enrolledStudents = enrollments.Select(enrollment => enrollment.Student).ToList();
             return enrolledStudents;
         }
 
-        public async Task<Courses> GetFirstOrDefaultAsync(Expression<Func<Courses, bool>> filter)
+        public async Task<Course> GetFirstOrDefaultAsync(Expression<Func<Course, bool>> filter)
         {
-            return await (await courseRepository.FindAsync(filter)).FirstOrDefaultAsync();
+            return (await unitOfWork.CoursesRepository.FindAsync(filter)).FirstOrDefault();
+        }
+
+        private async Task CheckIfCourseExistsAsync(Guid id)
+        {
+            bool courseExists = await unitOfWork.CoursesRepository.ExistsAsync(c => c.CourseId == id);
+
+            if (!courseExists)
+            {
+                throw new EntityNotFoundException($"The course with the id {id} was not found!");
+            }
         }
     }
 }

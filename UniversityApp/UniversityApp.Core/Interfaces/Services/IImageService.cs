@@ -4,6 +4,6 @@ namespace UniversityApp.Core.Interfaces.Services
 {
     public interface IImageService
     {
-        public string GetUserProfileImage(Users user);
+        public string GetUserProfileImage(User user);
     }
 }

@@ -11,13 +11,13 @@ namespace UniversityApp.Core.Interfaces.Services
     {
         Task<IEnumerable<StudentGrade>> GetGradesForStudentAsync(Guid studentId);
 
-        Task<Grades> GetFirstOrDefaultAsync(Expression<Func<Grades, bool>> filter);
+        Task<Grade> GetFirstOrDefaultAsync(Expression<Func<Grade, bool>> filter);
 
-        Task<IEnumerable<Grades>> GetAllAsync();
+        Task<IEnumerable<Grade>> GetAllAsync();
 
-        Task AddAsync(Grades grade);
+        Task AddAsync(Grade grade);
 
-        Task UpdateAsync(Grades grade);
+        Task UpdateAsync(Grade grade);
 
         Task DeleteAsync(Guid id);
     }

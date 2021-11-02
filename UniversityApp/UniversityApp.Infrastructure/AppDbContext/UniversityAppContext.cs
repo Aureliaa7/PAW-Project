@@ -5,24 +5,19 @@ using UniversityApp.Core.DomainEntities;
 
 namespace UniversityApp.Infrastructure.AppDbContext
 {
-    public partial class UniversityAppContext : IdentityDbContext<Users>
+    public partial class UniversityAppContext : IdentityDbContext<User>
     {
-        public UniversityAppContext()
-        {
-        }
+        public UniversityAppContext() { }
 
-        public UniversityAppContext(DbContextOptions<UniversityAppContext> options)
-            : base(options)
-        {
-        }
+        public UniversityAppContext(DbContextOptions<UniversityAppContext> options) : base(options) { }
 
-        public virtual DbSet<Courses> Courses { get; set; }
-        public virtual DbSet<Enrollments> Enrollments { get; set; }
-        public virtual DbSet<Grades> Grades { get; set; }
-        public virtual DbSet<Secretaries> Secretaries { get; set; }
-        public virtual DbSet<Students> Students { get; set; }
-        public virtual DbSet<TeachedCourses> TeachedCourses { get; set; }
-        public virtual DbSet<Teachers> Teachers { get; set; }
+        public virtual DbSet<Course> Courses { get; set; }
+        public virtual DbSet<Enrollment> Enrollments { get; set; }
+        public virtual DbSet<Grade> Grades { get; set; }
+        public virtual DbSet<Secretary> Secretaries { get; set; }
+        public virtual DbSet<Student> Students { get; set; }
+        public virtual DbSet<TeachedCourse> TeachedCourses { get; set; }
+        public virtual DbSet<Teacher> Teachers { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

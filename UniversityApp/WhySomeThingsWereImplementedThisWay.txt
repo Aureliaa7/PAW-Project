@@ -1,0 +1,14 @@
+
+* Identity package is still in the app's core
+-- I tried to remove the Identity package from UniversityApp.Core by creating a partial class for User(this class being the only one dependant
+on Identity package) placed in this assembly. The other partial class was placed in UniversityApp.Infrastructure and it inherited IdentityUser.
+But after all this, the Identity package is still in UniversityApp.Core since we cannot have 2 partial classes in different assemblies 
+to represent the same class. Another idea would have been placing the User class only in UniversityApp.Infrastructure but then UniversityApp.Core
+would have been depending on UniversityApp.Infrastructure and this would have caused a cyclic dependency.
+What I intended to do was to remove all the external dependencies from UniversityApp.Core(in this case, Identity) and keep it "clean".
+
+* There is only one table in DB for storing all the users. I came to this result by making the 
+Teacher, Student and Secretary classes inherit the User class(since there were a few common properties) and 
+by default, EF maps the inheritance using the table-per-hierarchy (TPH) pattern. 
+TPH uses a single table to store the data for all types in the hierarchy, and a discriminator column is used 
+to identify which type each row represents.

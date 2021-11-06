@@ -40,22 +40,12 @@
 
 }
 
-
+@*TODO Move this to a js file*@
 <script type="text/javascript">
-    // this displays me the popup every time i access the home page
-    //$(window).load(function () {
-    //    $('#myModal').modal('show');
-    //});
-
-
-    //it works, but not the way i want it to
-    
     $(document).ready(function () {
         if (sessionStorage.getItem('#myModal') !== '1') {
             $('#myModal').modal('show');
             sessionStorage.setItem('#myModal', '1');
         }
     });
-
-
 </script>

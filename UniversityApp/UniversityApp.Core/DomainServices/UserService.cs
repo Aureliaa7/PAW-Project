@@ -21,6 +21,7 @@ namespace UniversityApp.Core.DomainServices
             this.unitOfWork = unitOfWork;
         }
 
+        //TODO remove this method
         public User CreateUser(List<IFormFile> images, string userName, string email, string phoneNumber)
         {
             var user = new User
@@ -45,7 +46,7 @@ namespace UniversityApp.Core.DomainServices
 
         public async Task DeleteAsync(Guid id)
         {
-            bool userExists = await unitOfWork.UsersRepository.ExistsAsync(u => u.Id == id.ToString());
+            bool userExists = await unitOfWork.UsersRepository.ExistsAsync(u => u.Id == id);
             if (!userExists)
             {
                 throw new EntityNotFoundException($"The user with the id {id} was not found!");

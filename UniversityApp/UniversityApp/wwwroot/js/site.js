@@ -1,7 +1,4 @@
-﻿// Please see documentation at https://docs.microsoft.com/aspnet/core/client-side/bundling-and-minification
-// for details on configuring this project to bundle and minify static web assets.
-
-function get_enrolled_student_name() {
+﻿function get_enrolled_student_name() {
     var course_title = { id: $("#selected_course").val() };
     var student_cnp = { id: $("#selected_cnp").val() };
     var enrollment_details = {
@@ -99,7 +96,9 @@ function GetUserPicture() {
             success: function (data) {
                 console.log(data);
                 if (document.getElementById("UserPic") != null) {
-                    document.getElementById("UserPic").src = data;
+                    if (data != null) {
+                        document.getElementById("UserPic").src = data;
+                    }
                 }
             },
             error: function () {

@@ -5,9 +5,15 @@ VisualStudioVersion = 16.0.29905.134
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UniversityApp.Presentation", "UniversityApp\UniversityApp.Presentation.csproj", "{718AC0E3-91F8-42CF-8134-31B7525C0D51}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UniversityApp.Infrastructure", "UniversityApp.Infrastructure\UniversityApp.Infrastructure.csproj", "{9691CC3E-5E56-4759-8439-ACC52E18AA86}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UniversityApp.Infrastructure", "UniversityApp.Infrastructure\UniversityApp.Infrastructure.csproj", "{9691CC3E-5E56-4759-8439-ACC52E18AA86}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UniversityApp.Core", "UniversityApp.Core\UniversityApp.Core.csproj", "{9A712A50-993C-4FDA-AB72-70AF3CB9E00F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UniversityApp.Core", "UniversityApp.Core\UniversityApp.Core.csproj", "{9A712A50-993C-4FDA-AB72-70AF3CB9E00F}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Others", "Others", "{7B9C2081-4683-45EE-97A8-BF4E10426C96}"
+	ProjectSection(SolutionItems) = preProject
+		UsefulInfo.txt = UsefulInfo.txt
+		WhySomeThingsWereImplementedThisWay.txt = WhySomeThingsWereImplementedThisWay.txt
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

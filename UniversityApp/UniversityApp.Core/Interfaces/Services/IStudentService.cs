@@ -9,7 +9,7 @@ namespace UniversityApp.Core.Interfaces.Services
 {
     public interface IStudentService
     {
-        Task AddAsync(StudentRegistrationViewModel studentModel, string userId);
+        Task AddAsync(StudentRegistrationViewModel studentModel, Guid userId);
 
         Task DeleteAsync(DeleteStudentViewModel model);
 

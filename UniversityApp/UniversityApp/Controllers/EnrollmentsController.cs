@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using UniversityApp.Core;
 using UniversityApp.Core.Interfaces.Services;
 using UniversityApp.Core.ViewModels;
 
@@ -26,7 +27,7 @@ namespace UniversityApp.Controllers
             this.courseService = courseService;
         }
 
-        [Authorize(Roles = "Secretary")]
+        [Authorize(Roles = Constants.SecretaryRole)]
         public async Task<IActionResult> Index()
         {
             var enrollments = await enrollmentService.GetAllEnrollmentsAsync();
@@ -37,7 +38,7 @@ namespace UniversityApp.Controllers
             return View();
         }
 
-        [Authorize(Roles = "Secretary")]
+        [Authorize(Roles = Constants.SecretaryRole)]
         public async Task<IActionResult> Create()
         {
             ViewData["CourseTitle"] = new SelectList(await courseService.GetAsync(), "CourseTitle", "CourseTitle");
@@ -84,7 +85,7 @@ namespace UniversityApp.Controllers
             var studentName = "student not enrolled to selected course...";
             if(course != null && student != null)
             {
-                var enrollment = await enrollmentService.GetFirstOrDefaultAsync(e => (e.CourseId == course.CourseId) && (e.StudentId == student.StudentId));
+                var enrollment = await enrollmentService.GetFirstOrDefaultAsync(e => (e.CourseId == course.Id) && (e.StudentId == student.Id));
                 if(enrollment != null)
                 {
                     studentName = student.LastName + " " + student.FirstName;

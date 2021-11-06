@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using UniversityApp.Core;
 using UniversityApp.Core.DomainEntities;
 using UniversityApp.Core.Interfaces.Services;
 using UniversityApp.Core.ViewModels;
@@ -32,13 +33,13 @@ namespace UniversityApp.Controllers
             this.userService = userService;
         }
 
-        [Authorize(Roles = "Secretary")]
+        [Authorize(Roles = Constants.SecretaryRole)]
         public async Task<IActionResult> Index()
         {
-            return View((await teacherService.GetAsync()).Include(t => t.User).ToList().OrderBy(t => t.LastName));
+            return View((await teacherService.GetAsync()).ToList().OrderBy(t => t.LastName));
         }
 
-        [Authorize(Roles = "Secretary")]
+        [Authorize(Roles = Constants.SecretaryRole)]
         public IActionResult Create()
         {
             return View();
@@ -68,14 +69,14 @@ namespace UniversityApp.Controllers
             return View(teacherModel);
         }
 
-        [Authorize(Roles = "Secretary")]
+        [Authorize(Roles = Constants.SecretaryRole)]
         public async Task<IActionResult> Edit(Guid? id)
         {
             if (id == null)
             {
                 return NotFound();
             }
-            var teacher = (await teacherService.GetAsync(t => t.TeacherId == id)).FirstOrDefault();
+            var teacher = (await teacherService.GetAsync(t => t.Id == id)).FirstOrDefault();
 
             if (teacher == null)
             {
@@ -89,7 +90,7 @@ namespace UniversityApp.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(Guid id, [Bind("TeacherId,FirstName,LastName,PhoneNumber,Email,Cnp,UserId,Degree")] Teacher teacher)
         {
-            if (id != teacher.TeacherId)
+            if (id != teacher.Id)
             {
                 return NotFound();
             }
@@ -97,7 +98,7 @@ namespace UniversityApp.Controllers
             if (ModelState.IsValid)
             {
                 await teacherService.UpdateAsync(teacher);
-                var teacherFound = (await teacherService.GetAsync(t => t.TeacherId == teacher.TeacherId)).FirstOrDefault();
+                var teacherFound = (await teacherService.GetAsync(t => t.Id == teacher.Id)).FirstOrDefault();
                 if (teacherFound == null)
                 {
                     return NotFound();
@@ -107,14 +108,14 @@ namespace UniversityApp.Controllers
             return View(teacher);
         }
 
-        [Authorize(Roles = "Secretary")]
+        [Authorize(Roles = Constants.SecretaryRole)]
         public async Task<IActionResult> Delete(Guid? id)
         {
             if (id == null)
             {
                 return NotFound();
             }
-            var teacher = (await teacherService.GetAsync(t => t.TeacherId == id)).FirstOrDefault();
+            var teacher = (await teacherService.GetAsync(t => t.Id == id)).FirstOrDefault();
             if (teacher == null)
             {
                 return NotFound();
@@ -127,10 +128,10 @@ namespace UniversityApp.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(Guid id)
         {
-            var teacher = (await teacherService.GetAsync(t => t.TeacherId == id)).FirstOrDefault();
-            var user = (await userService.GetAsync(u => String.Equals(u.Id, teacher.UserId))).FirstOrDefault();
-            await teacherService.DeleteAsync(teacher.TeacherId);
-            await userService.DeleteAsync(new Guid(teacher.UserId));
+            var teacher = (await teacherService.GetAsync(t => t.Id == id)).FirstOrDefault();
+            var user = (await userService.GetAsync(u => String.Equals(u.Id, teacher.Id))).FirstOrDefault();
+            await teacherService.DeleteAsync(teacher.Id);
+            await userService.DeleteAsync(teacher.Id);
             return RedirectToAction(nameof(Index));
         }
 
@@ -140,14 +141,14 @@ namespace UniversityApp.Controllers
             return View(courses);
         }
 
-        [Authorize(Roles = "Teacher")]
+        [Authorize(Roles = Constants.TeacherRole)]
         public async Task<IActionResult> Home([FromServices]IFindLoggedInUser findUserService)
         {
             var userId = findUserService.GetIdLoggedInUser();
             if (userId != null)
             {
                 // search the student based on his user id
-                var teacher = (await teacherService.GetAsync(s => String.Equals(userId, s.UserId))).FirstOrDefault();
+                var teacher = (await teacherService.GetAsync(s => String.Equals(userId, s.Id))).FirstOrDefault();
 
                 if (teacher != null)
                 {
@@ -157,12 +158,12 @@ namespace UniversityApp.Controllers
             return View();
         }
 
-        [Authorize(Roles = "Teacher")]
+        [Authorize(Roles = Constants.TeacherRole)]
         public async Task<IActionResult> TeachedCourses([FromServices]ITeachedCourseService teachedCourseService)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            var teacher = (await teacherService.GetAsync(t => String.Equals(t.UserId, userId))).FirstOrDefault();
-            Guid teacherId = teacher.TeacherId;
+            var teacher = (await teacherService.GetAsync(t => String.Equals(t.Id, userId))).FirstOrDefault();
+            Guid teacherId = teacher.Id;
             var courses = await teachedCourseService.GetTeachedCoursesAsync(teacherId);
             return View(courses);
         }
@@ -173,7 +174,7 @@ namespace UniversityApp.Controllers
             var studentsToBeReturned = new List<EnrolledStudentViewModel>();
             foreach(var student in students)
             {
-                var enrollment = (await enrollmentService.GetAsync(e => e.StudentId == student.StudentId && e.CourseId == id)).FirstOrDefault();
+                var enrollment = (await enrollmentService.GetAsync(e => e.StudentId == student.Id && e.CourseId == id)).FirstOrDefault();
                 studentsToBeReturned.Add(new EnrolledStudentViewModel
                 {
                     FirstName = student.FirstName,

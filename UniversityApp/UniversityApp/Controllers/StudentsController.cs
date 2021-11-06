@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using UniversityApp.Core;
 using UniversityApp.Core.DomainEntities;
 using UniversityApp.Core.Interfaces.Services;
 using UniversityApp.Core.ViewModels;
@@ -28,7 +29,7 @@ namespace UniversityApp.Controllers
             this.userService = userService;
         }
 
-        [Authorize(Roles = "Secretary")]
+        [Authorize(Roles = Constants.SecretaryRole)]
         public async Task<IActionResult> Index()
         {
             return View((await studentService.GetAsync()).OrderBy(s => s.StudyYear));
@@ -40,7 +41,7 @@ namespace UniversityApp.Controllers
             {
                 return NotFound();
             }
-            var student = (await studentService.GetAsync(s => s.StudentId == id)).FirstOrDefault();
+            var student = (await studentService.GetAsync(s => s.Id == id)).FirstOrDefault();
             if (student == null)
             {
                 return NotFound();
@@ -48,13 +49,13 @@ namespace UniversityApp.Controllers
             return View(student);
         }
 
-        [Authorize(Roles="Secretary")]
+        [Authorize(Roles = Constants.SecretaryRole)]
         public IActionResult Create()
         {
             return View();
         }
 
-        [Authorize(Roles = "Secretary")]
+        [Authorize(Roles = Constants.SecretaryRole)]
         [HttpPost]
         public async Task<IActionResult> Create(List<IFormFile> Image, StudentRegistrationViewModel student)
         {
@@ -84,14 +85,14 @@ namespace UniversityApp.Controllers
             return View(student);
         }
 
-        [Authorize(Roles = "Secretary")]
+        [Authorize(Roles = Constants.SecretaryRole)]
         public async Task<IActionResult> Edit(Guid? id)
         {
             if (id == null)
             {
                 return NotFound();
             }
-            var student = (await studentService.GetAsync(s => s.StudentId == id)).FirstOrDefault();
+            var student = (await studentService.GetAsync(s => s.Id == id)).FirstOrDefault();
 
             if (student == null)
             {
@@ -105,7 +106,7 @@ namespace UniversityApp.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(Guid id, [Bind("StudentId,UserId,FirstName,LastName,Cnp,PhoneNumber,Email,StudyYear,Section,GroupName")] Student student)
         {
-            if (id != student.StudentId)
+            if (id != student.Id)
             {
                 return NotFound();
             }
@@ -115,7 +116,7 @@ namespace UniversityApp.Controllers
                 await studentService.UpdateAsync(student); ;
                 // WHY DO I DO THIS?!
                 // IDK
-                var studentFound = (await studentService.GetAsync(s => s.StudentId == student.StudentId)).FirstOrDefault();
+                var studentFound = (await studentService.GetAsync(s => s.Id == student.Id)).FirstOrDefault();
                 if (studentFound == null)
                 {
                     return NotFound();
@@ -126,14 +127,14 @@ namespace UniversityApp.Controllers
             return View(student);
         }
 
-        [Authorize(Roles = "Secretary")]
+        [Authorize(Roles = Constants.SecretaryRole)]
         public async Task<IActionResult> Delete(Guid? id)
         {
             if (id == null)
             {
                 return NotFound();
             }
-            var students = (await studentService.GetAsync(s => s.StudentId == id)).FirstOrDefault();
+            var students = (await studentService.GetAsync(s => s.Id == id)).FirstOrDefault();
             if (students == null)
             {
                 return NotFound();
@@ -165,11 +166,11 @@ namespace UniversityApp.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(Guid id)
         {
-            var student = (await studentService.GetAsync(s => s.StudentId == id)).FirstOrDefault();
-            var user = (await userService.GetAsync(u => String.Equals(u.Id, student.UserId))).FirstOrDefault();
+            var student = (await studentService.GetAsync(s => s.Id == id)).FirstOrDefault();
+            var user = (await userService.GetAsync(u => String.Equals(u.Id, student.Id))).FirstOrDefault();
         
-            await studentService.DeleteAsync(student.StudentId);
-            await userService.DeleteAsync(new Guid(user.Id));
+            await studentService.DeleteAsync(student.Id);
+            await userService.DeleteAsync(user.Id);
 
             return RedirectToAction(nameof(Index));
         }
@@ -186,7 +187,7 @@ namespace UniversityApp.Controllers
             return Json(studentName);
         }
 
-        [Authorize(Roles ="Student")]
+        [Authorize(Roles = Constants.StudentRole)]
         public async Task<IActionResult> Home()
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -197,7 +198,7 @@ namespace UniversityApp.Controllers
             if(applicationUser != null)
             {
                 // search the student based on his user id
-                var student = (await studentService.GetAsync(s => String.Equals(userId, s.UserId))).FirstOrDefault();
+                var student = (await studentService.GetAsync(s => String.Equals(userId, s.Id))).FirstOrDefault();
                 
                 if (student != null)
                 {
@@ -207,14 +208,14 @@ namespace UniversityApp.Controllers
             return View();
         }
 
-        [Authorize(Roles = "Student")]
+        [Authorize(Roles = Constants.StudentRole)]
         public async Task<IActionResult> Grades([FromServices] IGradeService gradeService, [FromServices] IFindLoggedInUser findUserService)
         {
             var userId = findUserService.GetIdLoggedInUser();
             if (userId != null)
             {
-                var student = (await studentService.GetAsync(s => String.Equals(userId, s.UserId))).FirstOrDefault();
-                var grades = gradeService.GetGradesForStudentAsync(student.StudentId);
+                var student = (await studentService.GetAsync(s => String.Equals(userId, s.Id))).FirstOrDefault();
+                var grades = gradeService.GetGradesForStudentAsync(student.Id);
                 return View(grades);
             }
             return RedirectToAction("Home","Students");

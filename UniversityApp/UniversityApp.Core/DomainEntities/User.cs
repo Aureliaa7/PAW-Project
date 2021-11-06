@@ -1,21 +1,16 @@
 ﻿using Microsoft.AspNetCore.Identity;
-using System.Collections.Generic;
+using System;
 
 namespace UniversityApp.Core.DomainEntities
 {
-    public partial class User : IdentityUser
+    public class User : IdentityUser<Guid>
     {
-        public User()
-        {
-            Secretaries = new HashSet<Secretary>();
-            Students = new HashSet<Student>();
-            Teachers = new HashSet<Teacher>();
-        }
-        
         public byte[] Image { get; set; }
 
-        public virtual ICollection<Secretary> Secretaries { get; set; }
-        public virtual ICollection<Student> Students { get; set; }
-        public virtual ICollection<Teacher> Teachers { get; set; }
+        public string Cnp { get; set; }
+
+        public string FirstName { get; set; }
+
+        public string LastName { get; set; }
     }
 }

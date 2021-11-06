@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using UniversityApp.Core;
 using UniversityApp.Core.DomainEntities;
 using UniversityApp.Core.Interfaces.Services;
 
@@ -39,7 +40,7 @@ namespace UniversityApp.Controllers
             return View(grade);
         }
 
-        [Authorize(Roles = "Teacher")]
+        [Authorize(Roles = Constants.TeacherRole)]
         public async Task<IActionResult> Create()
         {
             ViewData["EnrollmentId"] = new SelectList(
@@ -60,7 +61,7 @@ namespace UniversityApp.Controllers
             return View(grade);
         }
 
-        [Authorize(Roles = "Teacher")]
+        [Authorize(Roles = Constants.TeacherRole)]
         public async Task<IActionResult> Edit(Guid? id)
         {
             if (id == null)
@@ -108,7 +109,7 @@ namespace UniversityApp.Controllers
             return View(grade);
         }
 
-        [Authorize(Roles = "Teacher")]
+        [Authorize(Roles = Constants.TeacherRole)]
         public async Task<IActionResult> Delete(Guid? id)
         {
             if (id == null)

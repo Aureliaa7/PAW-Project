@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
@@ -7,8 +6,9 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.EntityFrameworkCore;
+using UniversityApp.Core;
 using UniversityApp.Core.DomainEntities;
+using UniversityApp.Core.Exceptions;
 using UniversityApp.Core.Interfaces.Services;
 using UniversityApp.Core.ViewModels;
 
@@ -29,10 +29,10 @@ namespace UniversityApp.Controllers
             this.userService = userService;
         }
 
-        [Authorize(Roles = "Secretary")]
+        [Authorize(Roles = Constants.SecretaryRole)]
         public async Task<IActionResult> Index()
         {
-            return View((await secretaryService.GetAsync()).Include(t => t.User).ToList());
+            return View((await secretaryService.GetAsync()).ToList());
         }
 
         public async Task<IActionResult> Details(Guid? id)
@@ -42,7 +42,7 @@ namespace UniversityApp.Controllers
                 return NotFound();
             }
 
-            var secretary = (await secretaryService.GetAsync(s => s.SecretaryId == id)).FirstOrDefault();
+            var secretary = (await secretaryService.GetAsync(s => s.Id == id)).FirstOrDefault();
 
             if (secretary == null)
             {
@@ -60,29 +60,21 @@ namespace UniversityApp.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create(List<IFormFile>Image, SecretaryRegistrationViewModel secretary)
-        {
-            var user = userService.CreateUser(Image, String.Concat(secretary.LastName, secretary.FirstName), secretary.Email, secretary.PhoneNumber);
-            var result = await userManager.CreateAsync(user, secretary.Password);
-
-            if (result.Succeeded)
+        public async Task<IActionResult> Create(IFormFile Image, SecretaryRegistrationViewModel secretary)
+        { 
+            try
             {
-                secretary.Image = user.Image;
-                await secretaryService.AddAsync(secretary, user.Id);
-                await userManager.AddToRoleAsync(user, secretary.Role);
+                await secretaryService.AddAsync(secretary, Image);
                 return RedirectToAction("Index", "Secretaries");
             }
-            else
+            catch (FailedUserRegistrationException ex)
             {
-                foreach (var error in result.Errors)
-                {
-                    ModelState.AddModelError("", error.Description);
-                }
+                //TODO do smth with the ex. message
             }
             return View(secretary);
         }
 
-        [Authorize(Roles = "Secretary")]
+        [Authorize(Roles = Constants.SecretaryRole)]
         public async Task<IActionResult> Edit(Guid? id)
         {
             if (id == null)
@@ -90,7 +82,7 @@ namespace UniversityApp.Controllers
                 return NotFound();
             }
 
-            var secretary = (await secretaryService.GetAsync(s => s.SecretaryId == id)).FirstOrDefault();
+            var secretary = (await secretaryService.GetAsync(s => s.Id == id)).FirstOrDefault();
             return View(secretary);
         }
 
@@ -99,14 +91,14 @@ namespace UniversityApp.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(Guid id, [Bind("SecretaryId,Cnp,FirstName,LastName,UserId,PhoneNumber,Email")] Secretary secretary)
         {
-            if (id != secretary.SecretaryId)
+            if (id != secretary.Id)
             {
                 return NotFound();
             }
 
             if (ModelState.IsValid)
             {
-                var secretaryFound = (await secretaryService.GetAsync(s => s.SecretaryId == secretary.SecretaryId)).FirstOrDefault();
+                var secretaryFound = (await secretaryService.GetAsync(s => s.Id == secretary.Id)).FirstOrDefault();
                 if (secretaryFound == null)
                 {
                     return NotFound();
@@ -117,14 +109,14 @@ namespace UniversityApp.Controllers
             return View(secretary);
         }
 
-        [Authorize(Roles = "Secretary")]
+        [Authorize(Roles = Constants.SecretaryRole)]
         public async Task<IActionResult> Delete(Guid? id)
         {
             if (id == null)
             {
                 return NotFound();
             }
-            var secretary = (await secretaryService.GetAsync(s => s.SecretaryId == id)).FirstOrDefault();
+            var secretary = (await secretaryService.GetAsync(s => s.Id == id)).FirstOrDefault();
 
             if (secretary == null)
             {
@@ -138,10 +130,10 @@ namespace UniversityApp.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(Guid id)
         {
-            var secretary = (await secretaryService.GetAsync(s => s.SecretaryId == id)).FirstOrDefault();
-            var user = (await userService.GetAsync(u => String.Equals(u.Id, secretary.UserId))).FirstOrDefault();
+            var secretary = (await secretaryService.GetAsync(s => s.Id == id)).FirstOrDefault();
+            var user = (await userService.GetAsync(u => String.Equals(u.Id, secretary.Id))).FirstOrDefault();
             await secretaryService.DeleteByCnpAsync(secretary.Cnp);
-            await userService.DeleteAsync(new Guid(user.Id));  // i'm not sure about this one
+            await userService.DeleteAsync(user.Id);  // i'm not sure about this one
             return RedirectToAction(nameof(Index));
         }
 
@@ -182,7 +174,7 @@ namespace UniversityApp.Controllers
             if (userId != null)
             {
                 // search the student based on his user id
-                var secretary = (await secretaryService.GetAsync(s => String.Equals(userId, s.UserId))).FirstOrDefault();
+                var secretary = (await secretaryService.GetAsync(s => String.Equals(userId, s.Id))).FirstOrDefault();
 
                 if (secretary != null)
                 {

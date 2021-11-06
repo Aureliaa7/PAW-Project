@@ -4,7 +4,6 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 using UniversityApp.Core.DomainEntities;
-using UniversityApp.Core.Exceptions;
 using UniversityApp.Core.Interfaces.Repositories;
 using UniversityApp.Core.Interfaces.Services;
 using UniversityApp.Core.ViewModels;
@@ -33,8 +32,8 @@ namespace UniversityApp.Core.DomainServices
             if (course != null && enrolledStudent != null)
             {
                 var enrollment = (await unitOfWork.EnrollmentsRepository
-                    .FindAsync(e => (e.CourseId == course.CourseId) && 
-                        (e.StudentId == enrolledStudent.StudentId)))
+                    .FindAsync(e => (e.CourseId == course.Id) && 
+                        (e.StudentId == enrolledStudent.Id)))
                     .FirstOrDefault();
                 if (enrollment != null)
                 {
@@ -52,8 +51,8 @@ namespace UniversityApp.Core.DomainServices
             {
                 foreach (var enrollment in enrollments)
                 {
-                    Course course = (await unitOfWork.CoursesRepository.FindAsync(c => c.CourseId == enrollment.CourseId)).FirstOrDefault();
-                    Student student = (await unitOfWork.StudentsRepository.FindAsync(s => String.Equals(s.StudentId, enrollment.StudentId))).FirstOrDefault();
+                    Course course = (await unitOfWork.CoursesRepository.FindAsync(c => c.Id == enrollment.CourseId)).FirstOrDefault();
+                    Student student = (await unitOfWork.StudentsRepository.FindAsync(s => String.Equals(s.Id, enrollment.StudentId))).FirstOrDefault();
                     if (course != null && student != null)
                     {
                         enrollmentModels.Add(new EnrollmentViewModel
@@ -75,14 +74,14 @@ namespace UniversityApp.Core.DomainServices
             Student student = (await unitOfWork.StudentsRepository.FindAsync(s => String.Equals(s.Cnp, model.StudentCnp))).FirstOrDefault();
             if (course != null && student != null)
             {
-                var foundEnrollment = (await unitOfWork.EnrollmentsRepository.FindAsync(e => (e.CourseId == course.CourseId) 
+                var foundEnrollment = (await unitOfWork.EnrollmentsRepository.FindAsync(e => (e.CourseId == course.Id) 
                 && (String.Equals(e.Student.Cnp, student.Cnp)))).FirstOrDefault();
                 if(foundEnrollment == null)
                 {
                     Enrollment enrollment = new Enrollment
                     {
-                        CourseId = course.CourseId,
-                        StudentId = student.StudentId
+                        CourseId = course.Id,
+                        StudentId = student.Id
                     };
                     await unitOfWork.EnrollmentsRepository.CreateAsync(enrollment);
                     await unitOfWork.SaveChangesAsync();

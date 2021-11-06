@@ -57,7 +57,7 @@ namespace UniversityApp.Core.DomainServices
             var grades = await GetGradesAsync(enrollments);
             foreach (var enrollment in enrollments)
             {
-                dictionary.Add(enrollment, (await unitOfWork.CoursesRepository.FindAsync(c => c.CourseId == enrollment.CourseId)).FirstOrDefault());
+                dictionary.Add(enrollment, (await unitOfWork.CoursesRepository.FindAsync(c => c.Id == enrollment.CourseId)).FirstOrDefault());
             }
             
             var studentGrades = new List<StudentGrade>();
@@ -66,7 +66,7 @@ namespace UniversityApp.Core.DomainServices
                 // search the enrollment
                 var enrollment = (await unitOfWork.EnrollmentsRepository.FindAsync(e => e.EnrollmentId == item.EnrollmentId)).FirstOrDefault();
                 // search the course
-                var course = (await unitOfWork.CoursesRepository.FindAsync(c => c.CourseId == enrollment.CourseId)).FirstOrDefault();
+                var course = (await unitOfWork.CoursesRepository.FindAsync(c => c.Id == enrollment.CourseId)).FirstOrDefault();
                 // create the studentGrade object
                 studentGrades.Add(new StudentGrade {GradeValue=item.Value, Date = item.Date, CourseTitle=course.CourseTitle });
             }

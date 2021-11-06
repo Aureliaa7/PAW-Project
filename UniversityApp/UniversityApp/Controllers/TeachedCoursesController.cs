@@ -104,7 +104,7 @@ namespace UniversityApp.Controllers
             string info = " ";
             if(teacher != null && course != null)
             {
-                var teachedCourse = (await teachedCourseService.GetAsync(tc => (tc.CourseId == course.CourseId) && (tc.TeacherId == teacher.TeacherId))).FirstOrDefault();
+                var teachedCourse = (await teachedCourseService.GetAsync(tc => (tc.CourseId == course.Id) && (tc.TeacherId == teacher.Id))).FirstOrDefault();
                 if(teachedCourse != null)
                 {
                     info += "this item already exists!";

@@ -25,7 +25,7 @@ namespace UniversityApp.Core.DomainServices
             var teacher = (await unitOfWork.TeachersRepository.FindAsync(t => String.Equals(t.Cnp, model.TeacherCnp))).FirstOrDefault();
             if(course != null && teacher != null)
             {
-                var teachedCourse = new TeachedCourse() { TeacherId = teacher.TeacherId, CourseId = course.CourseId };
+                var teachedCourse = new TeachedCourse() { TeacherId = teacher.Id, CourseId = course.Id };
                 await unitOfWork.TeachedCoursesRepository.CreateAsync(teachedCourse);
                 await unitOfWork.SaveChangesAsync();
             }
@@ -43,7 +43,7 @@ namespace UniversityApp.Core.DomainServices
             foreach(var tc in teachedCourses)
             {
                 //courseNames.Append(CourseRepository.FindByCondition(c => c.CourseId == tc.CourseId).FirstOrDefault());
-                courseNames.Add((await unitOfWork.CoursesRepository.FindAsync(c => c.CourseId == tc.CourseId)).ToList().FirstOrDefault());
+                courseNames.Add((await unitOfWork.CoursesRepository.FindAsync(c => c.Id == tc.CourseId)).ToList().FirstOrDefault());
             }
             return courseNames;
         }

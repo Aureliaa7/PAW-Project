@@ -19,11 +19,10 @@ namespace UniversityApp.Core.DomainServices
             this.unitOfWork = unitOfWork;
         }
 
-        public async Task AddAsync(TeacherRegistrationViewModel teacherModel, string userId)
+        public async Task AddAsync(TeacherRegistrationViewModel teacherModel,Guid userId)
         {
             Teacher teacher = new Teacher
             {
-                UserId = userId,
                 FirstName = teacherModel.FirstName,
                 LastName = teacherModel.LastName,
                 Cnp = teacherModel.Cnp,
@@ -37,7 +36,7 @@ namespace UniversityApp.Core.DomainServices
 
         public async Task DeleteAsync(Guid id)
         {
-            bool teacherExists = await unitOfWork.TeachersRepository.ExistsAsync(t => t.TeacherId == id);
+            bool teacherExists = await unitOfWork.TeachersRepository.ExistsAsync(t => t.Id == id);
             if (!teacherExists)
             {
                 throw new EntityNotFoundException($"The teacher with the id {id} was not found!");
@@ -53,10 +52,10 @@ namespace UniversityApp.Core.DomainServices
 
         public async Task UpdateAsync(Teacher teacher)
         {
-            bool teacherExists = await unitOfWork.TeachersRepository.ExistsAsync(t => t.TeacherId == teacher.TeacherId);
+            bool teacherExists = await unitOfWork.TeachersRepository.ExistsAsync(t => t.Id == teacher.Id);
             if (!teacherExists)
             {
-                throw new EntityNotFoundException($"The teached with the id {teacher.TeacherId} was not found!");
+                throw new EntityNotFoundException($"The teached with the id {teacher.Id} was not found!");
             }
             await unitOfWork.TeachersRepository.UpdateAsync(teacher);
             await unitOfWork.SaveChangesAsync();

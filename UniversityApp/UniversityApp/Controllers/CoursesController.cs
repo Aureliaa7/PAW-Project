@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using UniversityApp.Core;
 using UniversityApp.Core.DomainEntities;
 using UniversityApp.Core.Interfaces.Services;
 
@@ -16,13 +17,13 @@ namespace UniversityApp.Controllers
             this.courseService = courseService;
         }
 
-        [Authorize(Roles = "Secretary")]
+        [Authorize(Roles = Constants.SecretaryRole)]
         public async Task<IActionResult> Index()
         {
             return View(await courseService.GetAsync());
         }
 
-        [Authorize(Roles = "Secretary")]
+        [Authorize(Roles = Constants.SecretaryRole)]
         public IActionResult Create()
         {
             return View();
@@ -41,14 +42,14 @@ namespace UniversityApp.Controllers
             return View(courses);
         }
 
-        [Authorize(Roles = "Secretary")]
+        [Authorize(Roles = Constants.SecretaryRole)]
         public async Task<IActionResult> Edit(Guid? id)
         {
             if (id == null)
             {
                 return NotFound();
             }
-            var course = await courseService.GetFirstOrDefaultAsync(c => c.CourseId == id);
+            var course = await courseService.GetFirstOrDefaultAsync(c => c.Id == id);
 
             if (course == null)
             {
@@ -61,7 +62,7 @@ namespace UniversityApp.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(Guid id, [Bind("CourseId,CourseTitle,NoCredits,Year,Semester")] Course course)
         {
-            if (id != course.CourseId)
+            if (id != course.Id)
             {
                 return NotFound();
             }
@@ -69,7 +70,7 @@ namespace UniversityApp.Controllers
             if (ModelState.IsValid)
             {
                 await courseService.UpdateAsync(course);
-                var courseFound = await courseService.GetFirstOrDefaultAsync(c => c.CourseId == course.CourseId);
+                var courseFound = await courseService.GetFirstOrDefaultAsync(c => c.Id == course.Id);
                 if (courseFound == null)
                 {
                     return NotFound();
@@ -80,14 +81,14 @@ namespace UniversityApp.Controllers
             return View(course);
         }
 
-        [Authorize(Roles="Secretary")]
+        [Authorize(Roles = Constants.SecretaryRole)]
         public async Task<IActionResult> Delete(Guid? id)
         {
             if (id == null)
             {
                 return NotFound();
             }
-            var course = await courseService.GetFirstOrDefaultAsync(c => c.CourseId == id);
+            var course = await courseService.GetFirstOrDefaultAsync(c => c.Id == id);
             if (course == null)
             {
                 return NotFound();

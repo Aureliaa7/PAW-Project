@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Http;
+using System;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
@@ -9,7 +10,7 @@ namespace UniversityApp.Core.Interfaces.Services
 {
     public interface ISecretaryService
     {
-        Task AddAsync(SecretaryRegistrationViewModel secretaryModel, string userId);
+        Task AddAsync(SecretaryRegistrationViewModel secretaryModel, IFormFile image = null);
 
         Task DeleteByCnpAsync(string cnp);
 

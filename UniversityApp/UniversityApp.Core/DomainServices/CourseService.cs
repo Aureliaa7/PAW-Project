@@ -43,7 +43,7 @@ namespace UniversityApp.Core.DomainServices
 
         public async Task<Course> UpdateAsync(Course course)
         {
-            await CheckIfCourseExistsAsync(course.CourseId);
+            await CheckIfCourseExistsAsync(course.Id);
 
             var updatedCourse = await unitOfWork.CoursesRepository.UpdateAsync(course);
             await unitOfWork.SaveChangesAsync();
@@ -72,7 +72,7 @@ namespace UniversityApp.Core.DomainServices
 
         private async Task CheckIfCourseExistsAsync(Guid id)
         {
-            bool courseExists = await unitOfWork.CoursesRepository.ExistsAsync(c => c.CourseId == id);
+            bool courseExists = await unitOfWork.CoursesRepository.ExistsAsync(c => c.Id == id);
 
             if (!courseExists)
             {

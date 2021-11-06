@@ -1,0 +1,9 @@
+*** Useful links ***
+--------------------
+
+* Creating and configuring a model: https://docs.microsoft.com/en-us/ef/core/modeling/
+
+* Cannot have 2 partial classes in different assemblies to represent to the same class.
+Here is why: https://newbedev.com/is-it-possible-to-have-two-partial-classes-in-different-assemblies-represent-the-same-class
+
+* Inheritance EF Core: https://docs.microsoft.com/en-us/ef/core/modeling/inheritance

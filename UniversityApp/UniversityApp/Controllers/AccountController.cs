@@ -1,5 +1,4 @@
-﻿using System;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Http;
@@ -7,6 +6,8 @@ using Microsoft.AspNetCore.Authorization;
 using UniversityApp.Core.DomainEntities;
 using UniversityApp.Core.Interfaces.Services;
 using UniversityApp.Core.ViewModels;
+using UniversityApp.Core;
+using System.Linq;
 
 namespace UniversityApp.Controllers
 {
@@ -39,8 +40,6 @@ namespace UniversityApp.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Login(UserLogin userModel)
         {
-            int studentRole = 0, teacherRole = 0, secretaryRole = 0;
-
             if (!ModelState.IsValid)
             {
                 return View(userModel);
@@ -49,43 +48,16 @@ namespace UniversityApp.Controllers
             var user = await userManager.FindByEmailAsync(userModel.Email);
             if (user != null && await userManager.CheckPasswordAsync(user, userModel.Password))
             {
-                var roles = await userManager.GetRolesAsync(user);
+                var role = (await userManager.GetRolesAsync(user)).FirstOrDefault();
                 await loginService.Login(user, userManager);
 
-                foreach (string role in roles)
-                {
-                    if (String.Equals(role, "Student"))
-                    {
-                        studentRole++;
-                    }
-                    else if (String.Equals(role, "Teacher"))
-                    {
-                        teacherRole++;
-                    }
-                    else if (String.Equals(role, "Secretary"))
-                    {
-                        secretaryRole++;
-                    }
-
-                }
-                if (studentRole > 0)
-                {
-                    return RedirectToLocal("/Students/Home");
-                }
-                else if (teacherRole > 0)
-                {
-                    return RedirectToLocal("/Teachers/Home");
-                }
-                else
-                {
-                    return RedirectToLocal("/Secretaries/Home");
-                }
+                RedirectToSpecificPage(role);
             }
             else
             {
-                ModelState.AddModelError("", "Invalid UserName or Password");
-                return View();
+                ModelState.AddModelError("", "Wrong credentials!");
             }
+            return View();
         }
 
         private IActionResult RedirectToLocal(string returnUrl)
@@ -94,6 +66,26 @@ namespace UniversityApp.Controllers
                 return Redirect(returnUrl);
             else
                 return RedirectToAction(nameof(HomeController.Index), "Home");
+        }
+
+        private IActionResult RedirectToSpecificPage(string role)
+        {
+            if (role == null)
+            {
+                return View();
+            }
+
+            if (role != Constants.SecretaryRole)
+            {
+                return RedirectToLocal($"/{role}s/Home");
+            }
+
+            if (role == Constants.SecretaryRole)
+            {
+                return RedirectToLocal($"/Secretaries/Home");
+            }
+
+            return View();
         }
 
 

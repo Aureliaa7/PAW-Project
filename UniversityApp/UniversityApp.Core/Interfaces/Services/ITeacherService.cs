@@ -9,7 +9,7 @@ namespace UniversityApp.Core.Interfaces.Services
 {
     public interface ITeacherService
     {
-        Task AddAsync(TeacherRegistrationViewModel teacherModel, string userId);
+        Task AddAsync(TeacherRegistrationViewModel teacherModel, Guid userId);
 
         Task<IQueryable<Teacher>> GetAsync(Expression<Func<Teacher, bool>> filter = null);
 

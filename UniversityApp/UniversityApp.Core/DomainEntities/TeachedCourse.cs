@@ -2,7 +2,7 @@
 
 namespace UniversityApp.Core.DomainEntities
 {
-    public partial class TeachedCourse
+    public class TeachedCourse
     {
         public Guid Id { get; set; }
 

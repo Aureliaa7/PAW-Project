@@ -58,7 +58,7 @@ namespace UniversityApp.Core.DomainServices
 
         public async Task<IEnumerable<User>> GetAsync(Expression<Func<User, bool>> filter = null)
         {
-            return (await unitOfWork.UsersRepository.FindAsync(filter)).ToList();
+            return (await unitOfWork.UsersRepository.GetAsync(filter)).ToList();
         }
     }
 }

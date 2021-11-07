@@ -1,11 +1,14 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
+using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using UniversityApp.Core;
 using UniversityApp.Core.DomainEntities;
+using UniversityApp.Core.DTOs;
 using UniversityApp.Core.Interfaces.Services;
 
 namespace UniversityApp.Controllers
@@ -14,16 +17,21 @@ namespace UniversityApp.Controllers
     {
         private readonly IGradeService gradeService;
         private readonly IEnrollmentService enrollmentService;
+        private readonly IMapper mapper;
 
-        public GradesController(IGradeService gradeService, IEnrollmentService enrollmentService)
+        public GradesController(
+            IGradeService gradeService,
+            IEnrollmentService enrollmentService,
+            IMapper mapper)
         {
             this.gradeService = gradeService;
             this.enrollmentService = enrollmentService;
+            this.mapper = mapper;
         }
 
         public async Task<IActionResult> Index()
         {
-            return View(await gradeService.GetAllAsync());
+            return View(mapper.Map<IEnumerable<GradeDto>>(await gradeService.GetAllAsync()));
         }
 
         public async Task<IActionResult> Details(Guid? id)
@@ -37,7 +45,7 @@ namespace UniversityApp.Controllers
             {
                 return NotFound();
             }
-            return View(grade);
+            return View(mapper.Map<GradeDto>(grade));
         }
 
         [Authorize(Roles = Constants.TeacherRole)]
@@ -50,11 +58,11 @@ namespace UniversityApp.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("GradeId,EnrollmentId,Value,Date")] Grade grade)
+        public async Task<IActionResult> Create([Bind("GradeId,EnrollmentId,Value,Date")] GradeDto grade)
         {
             if (ModelState.IsValid)
             {
-                await gradeService.AddAsync(grade);
+                await gradeService.AddAsync(mapper.Map<Grade>(grade));
                 return RedirectToAction("Home", "Teachers");
             }
             ViewData["EnrollmentId"] = new SelectList(await enrollmentService.GetAllEnrollmentsAsync(), "EnrollmentId", "EnrollmentId", grade.EnrollmentId);
@@ -74,12 +82,12 @@ namespace UniversityApp.Controllers
             {
                 return NotFound();
             }
-            return View(grade);
+            return View(mapper.Map<GradeDto>(grade));
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(Guid id, [Bind("GradeId,EnrollmentId,Value,Date")] Grade grade)
+        public async Task<IActionResult> Edit(Guid id, [Bind("GradeId,EnrollmentId,Value,Date")] GradeDto grade)
         {
             if (id != grade.GradeId)
             {
@@ -90,11 +98,11 @@ namespace UniversityApp.Controllers
             {
                 try
                 {
-                    await gradeService.UpdateAsync(grade);
+                    await gradeService.UpdateAsync(mapper.Map<Grade>(grade));
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (! await GradesExistsAsync(grade.GradeId))
+                    if (!await gradeService.ExistsAsync(g => g.GradeId == id))
                     {
                         return NotFound();
                     }
@@ -121,7 +129,7 @@ namespace UniversityApp.Controllers
             {
                 return NotFound();
             }
-            return View(grade);
+            return View(mapper.Map<GradeDto>(grade));
         }
 
         [HttpPost, ActionName("Delete")]
@@ -130,18 +138,6 @@ namespace UniversityApp.Controllers
         {
             await gradeService.DeleteAsync(id);
             return RedirectToAction(nameof(Index));
-        }
-
-        private async Task<bool> GradesExistsAsync(Guid id)
-        {
-            var grade = await gradeService.GetFirstOrDefaultAsync(g => g.GradeId == id);
-
-            if (grade != null)
-            {
-                return true;
-            }
-
-            return false;
         }
     }
 }

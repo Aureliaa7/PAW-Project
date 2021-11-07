@@ -19,6 +19,6 @@ namespace UniversityApp.Core.Interfaces.Services
 
         Task<Enrollment> GetFirstOrDefaultAsync(Expression<Func<Enrollment, bool>> filter);
 
-        Task<IEnumerable<Enrollment>> GetAsync(Expression<Func<Enrollment, bool>> filter = null);
+        Task<IEnumerable<Enrollment>> GetAllAsync(Expression<Func<Enrollment, bool>> filter = null);
     }
 }

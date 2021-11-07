@@ -20,10 +20,12 @@ namespace UniversityApp.Core.DomainServices
             this.unitOfWork = unitOfWork;
         }
 
-        public async Task AddAsync(Grade grade)
+        public async Task<Grade> AddAsync(Grade grade)
         {
-            await unitOfWork.GradesRepository.CreateAsync(grade);
+            var savedGrade = await unitOfWork.GradesRepository.CreateAsync(grade);
             await unitOfWork.SaveChangesAsync();
+
+            return savedGrade;
         }
 
         public async Task DeleteAsync(Guid id)
@@ -38,35 +40,35 @@ namespace UniversityApp.Core.DomainServices
             await unitOfWork.SaveChangesAsync();
         }
 
-        public async Task<IEnumerable<Grade>> GetAllAsync()
+        public async Task<IEnumerable<Grade>> GetAllAsync(Expression<Func<Grade, bool>> filter = null)
         {
-            return (await unitOfWork.GradesRepository.FindAsync()).ToList();
+            return (await unitOfWork.GradesRepository.GetAsync(filter)).ToList();
         }
 
         public async Task<Grade> GetFirstOrDefaultAsync(Expression<Func<Grade, bool>> filter)
         {
-            return (await unitOfWork.GradesRepository.FindAsync(filter)).FirstOrDefault();
+            return (await unitOfWork.GradesRepository.GetAsync(filter)).FirstOrDefault();
         }
 
         //get all grades of a student based on his id
         public async Task<IEnumerable<StudentGrade>> GetGradesForStudentAsync(Guid studentId)
         {
-            var enrollments = (await unitOfWork.EnrollmentsRepository.FindAsync(e => e.StudentId == studentId)).ToList();
+            var enrollments = (await unitOfWork.EnrollmentsRepository.GetAsync(e => e.StudentId == studentId)).ToList();
             var dictionary = new Dictionary<Enrollment, Course>();
 
             var grades = await GetGradesAsync(enrollments);
             foreach (var enrollment in enrollments)
             {
-                dictionary.Add(enrollment, (await unitOfWork.CoursesRepository.FindAsync(c => c.Id == enrollment.CourseId)).FirstOrDefault());
+                dictionary.Add(enrollment, (await unitOfWork.CoursesRepository.GetAsync(c => c.Id == enrollment.CourseId)).FirstOrDefault());
             }
             
             var studentGrades = new List<StudentGrade>();
             foreach(var item in grades)
             {
                 // search the enrollment
-                var enrollment = (await unitOfWork.EnrollmentsRepository.FindAsync(e => e.EnrollmentId == item.EnrollmentId)).FirstOrDefault();
+                var enrollment = (await unitOfWork.EnrollmentsRepository.GetAsync(e => e.EnrollmentId == item.EnrollmentId)).FirstOrDefault();
                 // search the course
-                var course = (await unitOfWork.CoursesRepository.FindAsync(c => c.Id == enrollment.CourseId)).FirstOrDefault();
+                var course = (await unitOfWork.CoursesRepository.GetAsync(c => c.Id == enrollment.CourseId)).FirstOrDefault();
                 // create the studentGrade object
                 studentGrades.Add(new StudentGrade {GradeValue=item.Value, Date = item.Date, CourseTitle=course.CourseTitle });
             }
@@ -78,13 +80,13 @@ namespace UniversityApp.Core.DomainServices
             var grades = new List<Grade>();
             foreach (var enrollment in enrollments)
             {
-                var grade = (await unitOfWork.GradesRepository.FindAsync(grade => grade.EnrollmentId == enrollment.EnrollmentId)).FirstOrDefault();
+                var grade = (await unitOfWork.GradesRepository.GetAsync(grade => grade.EnrollmentId == enrollment.EnrollmentId)).FirstOrDefault();
                 grades.Add(grade);
             }
             return grades;
         }
 
-        public async Task UpdateAsync(Grade grade)
+        public async Task<Grade> UpdateAsync(Grade grade)
         {
             bool gradeExists = await unitOfWork.GradesRepository.ExistsAsync(g => g.GradeId == grade.GradeId);
             if (!gradeExists)
@@ -92,8 +94,15 @@ namespace UniversityApp.Core.DomainServices
                 throw new EntityNotFoundException($"The grade with the id {grade.GradeId} was not found!");
             }
 
-            await unitOfWork.GradesRepository.UpdateAsync(grade);
+            var updatedGrade = await unitOfWork.GradesRepository.UpdateAsync(grade);
             await unitOfWork.SaveChangesAsync();
+
+            return updatedGrade;
+        }
+
+        public async Task<bool> ExistsAsync(Expression<Func<Grade, bool>> filter)
+        {
+            return await unitOfWork.GradesRepository.ExistsAsync(filter);
         }
     }
 }

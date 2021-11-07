@@ -1,13 +1,12 @@
 ﻿using System;
-using System.Linq;
 using System.Threading.Tasks;
+using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using UniversityApp.Core;
 using UniversityApp.Core.DomainEntities;
+using UniversityApp.Core.DTOs;
 using UniversityApp.Core.Exceptions;
 using UniversityApp.Core.Interfaces.Services;
 using UniversityApp.Core.ViewModels;
@@ -17,22 +16,23 @@ namespace UniversityApp.Controllers
     public class SecretariesController : Controller
     {
         private readonly ISecretaryService secretaryService;
-        private SignInManager<User> signManager;
-        private UserManager<User> userManager;
-        private readonly IUserService userService;
+        private readonly IImageService imageService;
+        private readonly IMapper mapper;
 
-        public SecretariesController(ISecretaryService secretaryService, SignInManager<User> signManager, UserManager<User> userManager, IUserService userService)
+        public SecretariesController(
+            ISecretaryService secretaryService,
+            IMapper mapper,
+            IImageService imageService)
         {
             this.secretaryService = secretaryService;
-            this.signManager = signManager;
-            this.userManager = userManager;
-            this.userService = userService;
+            this.mapper = mapper;
+            this.imageService = imageService;
         }
 
         [Authorize(Roles = Constants.SecretaryRole)]
         public async Task<IActionResult> Index()
         {
-            return View((await secretaryService.GetAsync()).ToList());
+            return View(await secretaryService.GetAllAsync());
         }
 
         public async Task<IActionResult> Details(Guid? id)
@@ -42,36 +42,40 @@ namespace UniversityApp.Controllers
                 return NotFound();
             }
 
-            var secretary = (await secretaryService.GetAsync(s => s.Id == id)).FirstOrDefault();
+            var secretary = await secretaryService.GetFirstOrDefaultAsync(s => s.Id == id);
 
             if (secretary == null)
             {
-                return NotFound();
+                return RedirectToAction("Exceptions", "EntityNotFound");
             }
 
-            return View(secretary);
+            return View(secretary);  ///
         }
 
 
         [HttpGet]
+        [Authorize(Roles = Constants.SecretaryRole)]
         public IActionResult Create()
         {
             return View();
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create(IFormFile Image, SecretaryRegistrationViewModel secretary)
-        { 
+        public async Task<IActionResult> Create(SecretaryRegistrationDto secretaryDto)
+        {
+            var secretary = mapper.Map<Secretary>(secretaryDto);
+            secretary.Image = imageService.GetBytes(secretaryDto.Image);
+
             try
             {
-                await secretaryService.AddAsync(secretary, Image);
+                await secretaryService.AddAsync(secretary, secretaryDto.Password);
                 return RedirectToAction("Index", "Secretaries");
             }
             catch (FailedUserRegistrationException ex)
             {
                 //TODO do smth with the ex. message
             }
-            return View(secretary);
+            return View(secretaryDto);
         }
 
         [Authorize(Roles = Constants.SecretaryRole)]
@@ -82,14 +86,14 @@ namespace UniversityApp.Controllers
                 return NotFound();
             }
 
-            var secretary = (await secretaryService.GetAsync(s => s.Id == id)).FirstOrDefault();
-            return View(secretary);
+            var secretary = await secretaryService.GetFirstOrDefaultAsync(s => s.Id == id);
+            return View(mapper.Map<EditSecretaryDto>(secretary));
         }
 
         
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(Guid id, [Bind("SecretaryId,Cnp,FirstName,LastName,UserId,PhoneNumber,Email")] Secretary secretary)
+        public async Task<IActionResult> Edit(Guid id, [Bind("Id,Cnp,FirstName,LastName,PhoneNumber,Email")] EditSecretaryDto secretary)
         {
             if (id != secretary.Id)
             {
@@ -98,12 +102,12 @@ namespace UniversityApp.Controllers
 
             if (ModelState.IsValid)
             {
-                var secretaryFound = (await secretaryService.GetAsync(s => s.Id == secretary.Id)).FirstOrDefault();
+                var secretaryFound = await secretaryService.GetFirstOrDefaultAsync(s => s.Id == id);
                 if (secretaryFound == null)
                 {
                     return NotFound();
                 }
-                await secretaryService.UpdateAsync(secretary);
+                await secretaryService.UpdateAsync(mapper.Map<Secretary>(secretary));
                 return RedirectToAction(nameof(Index));
             }
             return View(secretary);
@@ -116,7 +120,7 @@ namespace UniversityApp.Controllers
             {
                 return NotFound();
             }
-            var secretary = (await secretaryService.GetAsync(s => s.Id == id)).FirstOrDefault();
+            var secretary = await secretaryService.GetFirstOrDefaultAsync(s => s.Id == id);
 
             if (secretary == null)
             {
@@ -130,16 +134,13 @@ namespace UniversityApp.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(Guid id)
         {
-            var secretary = (await secretaryService.GetAsync(s => s.Id == id)).FirstOrDefault();
-            var user = (await userService.GetAsync(u => String.Equals(u.Id, secretary.Id))).FirstOrDefault();
-            await secretaryService.DeleteByCnpAsync(secretary.Cnp);
-            await userService.DeleteAsync(user.Id);  // i'm not sure about this one
+            await secretaryService.DeleteAsync(id);
             return RedirectToAction(nameof(Index));
         }
 
         public async Task<IActionResult> DeleteByCnp()
         {
-            ViewData["SecretaryCnp"] = new SelectList(await secretaryService.GetAsync(), "Cnp", "Cnp");
+            ViewData["SecretaryCnp"] = new SelectList(await secretaryService.GetAllAsync(), "Cnp", "Cnp");
             return View();
         }
 
@@ -152,14 +153,14 @@ namespace UniversityApp.Controllers
                 await secretaryService.DeleteByCnpAsync(model.Cnp);
                 return RedirectToAction("Home", "Secretaries");
             }
-            ViewData["SecretaryCnp"] = new SelectList(await secretaryService.GetAsync(), "Cnp", "Cnp");
+            ViewData["SecretaryCnp"] = new SelectList(await secretaryService.GetAllAsync(), "Cnp", "Cnp");
             return View(model);
         }
 
         public async Task<IActionResult> GetSecretaryNameByCnp(string cnp)
         {
             var secretaryName = "secretary not found";
-            var searchedSecretary = (await secretaryService.GetAsync(s => String.Equals(s.Cnp, cnp))).FirstOrDefault();
+            var searchedSecretary = await secretaryService.GetFirstOrDefaultAsync(s => String.Equals(s.Cnp, cnp));
             if(searchedSecretary != null)
             {
                 secretaryName = searchedSecretary.LastName + " " + searchedSecretary.FirstName;
@@ -173,8 +174,7 @@ namespace UniversityApp.Controllers
             var userId = findUserService.GetIdLoggedInUser();
             if (userId != null)
             {
-                // search the student based on his user id
-                var secretary = (await secretaryService.GetAsync(s => String.Equals(userId, s.Id))).FirstOrDefault();
+                var secretary = await secretaryService.GetFirstOrDefaultAsync(s => String.Equals(userId, s.Id));
 
                 if (secretary != null)
                 {

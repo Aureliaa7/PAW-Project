@@ -18,5 +18,7 @@ namespace UniversityApp.Core.Interfaces.Services
         Task<IEnumerable<Student>> GetAsync(Expression<Func<Student, bool>> filter = null);
 
         Task UpdateAsync(Student student);
+
+        Task<Student> GetFirstOrDefaultAsync(Expression<Func<Student, bool>> filter);
     }
 }

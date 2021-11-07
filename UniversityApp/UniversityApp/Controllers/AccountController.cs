@@ -8,24 +8,26 @@ using UniversityApp.Core.Interfaces.Services;
 using UniversityApp.Core.ViewModels;
 using UniversityApp.Core;
 using System.Linq;
+using UniversityApp.Core.Exceptions;
 
 namespace UniversityApp.Controllers
 {
     public class AccountController : Controller
     {
-        private readonly SignInManager<User> signManager;
         private readonly UserManager<User> userManager;
         private readonly IHttpContextAccessor contextAccessor;
-        private readonly ILoginService loginService;
+        private readonly IAccountService accountService;
         private readonly IImageService imageService;
 
-        public AccountController(SignInManager<User> signManager, UserManager<User> userManager, IHttpContextAccessor contextAccessor, 
-            ILoginService loginService, IImageService imageService)
+        public AccountController(
+            UserManager<User> userManager, 
+            IHttpContextAccessor contextAccessor, 
+            IAccountService accountService, 
+            IImageService imageService)
         {
-            this.signManager = signManager;
             this.userManager = userManager;
             this.contextAccessor = contextAccessor;
-            this.loginService = loginService;
+            this.accountService = accountService;
             this.imageService = imageService;
         }
 
@@ -45,17 +47,21 @@ namespace UniversityApp.Controllers
                 return View(userModel);
             }
 
-            var user = await userManager.FindByEmailAsync(userModel.Email);
-            if (user != null && await userManager.CheckPasswordAsync(user, userModel.Password))
-            {
-                var role = (await userManager.GetRolesAsync(user)).FirstOrDefault();
-                await loginService.Login(user, userManager);
-
-                RedirectToSpecificPage(role);
+            try {
+                await accountService.LoginAsync(userModel);
+                string path = await GetPageRouteAsync(userModel.Email);
+                if (!string.IsNullOrEmpty(path))
+                {
+                    return RedirectToLocal(path);
+                }
             }
-            else
+            catch (IncorrectCredentialsException)
             {
                 ModelState.AddModelError("", "Wrong credentials!");
+            }
+            catch (EntityNotFoundException ex)
+            {
+                ModelState.AddModelError("", ex.Message);
             }
             return View();
         }
@@ -63,52 +69,51 @@ namespace UniversityApp.Controllers
         private IActionResult RedirectToLocal(string returnUrl)
         {
             if (Url.IsLocalUrl(returnUrl))
+            {
                 return Redirect(returnUrl);
+            }
             else
+            {
                 return RedirectToAction(nameof(HomeController.Index), "Home");
+            }
         }
 
-        private IActionResult RedirectToSpecificPage(string role)
+        private async Task<string> GetPageRouteAsync(string email)
         {
-            if (role == null)
-            {
-                return View();
-            }
+            var user = await userManager.FindByEmailAsync(email);
+            var role = (await userManager.GetRolesAsync(user)).FirstOrDefault();
 
             if (role != Constants.SecretaryRole)
             {
-                return RedirectToLocal($"/{role}s/Home");
+                return $"/{role}s/Home";
             }
 
             if (role == Constants.SecretaryRole)
             {
-                return RedirectToLocal($"/Secretaries/Home");
+                return $"/Secretaries/Home";
             }
 
-            return View();
+            return string.Empty;
         }
-
 
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Logout()
         {
-            contextAccessor.HttpContext.Session.Clear();
-            await signManager.SignOutAsync();
+            await accountService.LogoutAsync();
 
             return RedirectToAction(nameof(HomeController.Index), "Home");
         }
 
-
         public JsonResult GetUserImage()
         {
             var user = userManager.GetUserAsync(User);
-            string retVal = "";
+            string base64Image = "";
             if (user != null)
             {
-                retVal = imageService.GetUserProfileImage(user.Result); 
+                base64Image = imageService.GetUserProfileImage(user.Result); 
             }
-            return Json(retVal);
+            return Json(base64Image);
         }
     }
 }

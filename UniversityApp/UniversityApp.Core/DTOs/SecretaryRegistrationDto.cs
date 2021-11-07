@@ -1,14 +1,10 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Microsoft.AspNetCore.Http;
+using System.ComponentModel.DataAnnotations;
 
-namespace UniversityApp.Core.ViewModels
+namespace UniversityApp.Core.DTOs
 {
-    public class SecretaryRegistrationViewModel
+    public class SecretaryRegistrationDto
     {
-        public SecretaryRegistrationViewModel()
-        {
-            Role = "SECRETARY";
-        }
-
         [Required]
         [Display(Name = "First name")]
         public string FirstName { get; set; }
@@ -35,8 +31,6 @@ namespace UniversityApp.Core.ViewModels
         [Display(Name = "Access Code")]
         public string Password { get; set; }
 
-        public string Role { get; private set; }
-        [Required]
-        public byte[] Image { get; set; }
+        public IFormFile Image { get; set; }
     }
 }

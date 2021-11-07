@@ -5,15 +5,13 @@ using System.Threading.Tasks;
 
 namespace UniversityApp.Interfaces
 {
-    public interface IRepositoryBase<T>
+    public interface IRepository<T>
     {
-        Task<IQueryable<T>> FindAsync(Expression<Func<T, bool>> expression = null);
+        Task<IQueryable<T>> GetAsync(Expression<Func<T, bool>> expression = null);
 
         Task<T> CreateAsync(T entity);
 
         Task<T> UpdateAsync(T entity);
-
-        Task<T> DeleteAsync(T entity);
 
         Task<T> DeleteAsync(Guid id);
 

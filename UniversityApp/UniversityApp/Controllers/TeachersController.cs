@@ -7,7 +7,6 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using UniversityApp.Core;
 using UniversityApp.Core.DomainEntities;
 using UniversityApp.Core.Interfaces.Services;
@@ -76,7 +75,7 @@ namespace UniversityApp.Controllers
             {
                 return NotFound();
             }
-            var teacher = (await teacherService.GetAsync(t => t.Id == id)).FirstOrDefault();
+            var teacher = await teacherService.GetFirstOrDefaultAsync(t => t.Id == id);
 
             if (teacher == null)
             {
@@ -98,7 +97,7 @@ namespace UniversityApp.Controllers
             if (ModelState.IsValid)
             {
                 await teacherService.UpdateAsync(teacher);
-                var teacherFound = (await teacherService.GetAsync(t => t.Id == teacher.Id)).FirstOrDefault();
+                var teacherFound = await teacherService.GetFirstOrDefaultAsync(t => t.Id == teacher.Id);
                 if (teacherFound == null)
                 {
                     return NotFound();
@@ -115,7 +114,7 @@ namespace UniversityApp.Controllers
             {
                 return NotFound();
             }
-            var teacher = (await teacherService.GetAsync(t => t.Id == id)).FirstOrDefault();
+            var teacher = await teacherService.GetFirstOrDefaultAsync(t => t.Id == id);
             if (teacher == null)
             {
                 return NotFound();
@@ -128,7 +127,7 @@ namespace UniversityApp.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(Guid id)
         {
-            var teacher = (await teacherService.GetAsync(t => t.Id == id)).FirstOrDefault();
+            var teacher = await teacherService.GetFirstOrDefaultAsync(t => t.Id == id);
             var user = (await userService.GetAsync(u => String.Equals(u.Id, teacher.Id))).FirstOrDefault();
             await teacherService.DeleteAsync(teacher.Id);
             await userService.DeleteAsync(teacher.Id);
@@ -147,8 +146,7 @@ namespace UniversityApp.Controllers
             var userId = findUserService.GetIdLoggedInUser();
             if (userId != null)
             {
-                // search the student based on his user id
-                var teacher = (await teacherService.GetAsync(s => String.Equals(userId, s.Id))).FirstOrDefault();
+                var teacher = await teacherService.GetFirstOrDefaultAsync(s => String.Equals(userId, s.Id));
 
                 if (teacher != null)
                 {
@@ -162,7 +160,7 @@ namespace UniversityApp.Controllers
         public async Task<IActionResult> TeachedCourses([FromServices]ITeachedCourseService teachedCourseService)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            var teacher = (await teacherService.GetAsync(t => String.Equals(t.Id, userId))).FirstOrDefault();
+            var teacher = await teacherService.GetFirstOrDefaultAsync(t => String.Equals(t.Id, userId));
             Guid teacherId = teacher.Id;
             var courses = await teachedCourseService.GetTeachedCoursesAsync(teacherId);
             return View(courses);
@@ -174,7 +172,7 @@ namespace UniversityApp.Controllers
             var studentsToBeReturned = new List<EnrolledStudentViewModel>();
             foreach(var student in students)
             {
-                var enrollment = (await enrollmentService.GetAsync(e => e.StudentId == student.Id && e.CourseId == id)).FirstOrDefault();
+                var enrollment = await enrollmentService.GetFirstOrDefaultAsync(e => e.StudentId == student.Id && e.CourseId == id);
                 studentsToBeReturned.Add(new EnrolledStudentViewModel
                 {
                     FirstName = student.FirstName,

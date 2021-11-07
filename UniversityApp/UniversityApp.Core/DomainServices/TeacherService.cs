@@ -47,7 +47,12 @@ namespace UniversityApp.Core.DomainServices
 
         public async Task<IQueryable<Teacher>> GetAsync(Expression<Func<Teacher, bool>> filter = null)
         {
-            return await unitOfWork.TeachersRepository.FindAsync(filter);
+            return await unitOfWork.TeachersRepository.GetAsync(filter);
+        }
+
+        public async Task<Teacher> GetFirstOrDefaultAsync(Expression<Func<Teacher, bool>> filter)
+        {
+            return (await unitOfWork.TeachersRepository.GetAsync(filter)).FirstOrDefault();
         }
 
         public async Task UpdateAsync(Teacher teacher)

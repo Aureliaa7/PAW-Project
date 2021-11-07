@@ -14,6 +14,7 @@ namespace UniversityApp.Core.DomainServices
     public class TeachedCourseService : ITeachedCourseService
     {
         private readonly IUnitOfWork unitOfWork;
+
         public TeachedCourseService(IUnitOfWork unitOfWork)
         {
             this.unitOfWork = unitOfWork;
@@ -21,8 +22,8 @@ namespace UniversityApp.Core.DomainServices
 
         public async Task AssignCourseAsync(CourseAssignmentViewModel model)
         {
-            var course = (await unitOfWork.CoursesRepository.FindAsync(c => String.Equals(c.CourseTitle, model.CourseTitle))).FirstOrDefault();
-            var teacher = (await unitOfWork.TeachersRepository.FindAsync(t => String.Equals(t.Cnp, model.TeacherCnp))).FirstOrDefault();
+            var course = (await unitOfWork.CoursesRepository.GetAsync(c => String.Equals(c.CourseTitle, model.CourseTitle))).FirstOrDefault();
+            var teacher = (await unitOfWork.TeachersRepository.GetAsync(t => String.Equals(t.Cnp, model.TeacherCnp))).FirstOrDefault();
             if(course != null && teacher != null)
             {
                 var teachedCourse = new TeachedCourse() { TeacherId = teacher.Id, CourseId = course.Id };
@@ -33,17 +34,21 @@ namespace UniversityApp.Core.DomainServices
 
         public async Task<IEnumerable<TeachedCourse>> GetAsync(Expression<Func<TeachedCourse, bool>> filter = null)
         {
-            return (await unitOfWork.TeachedCoursesRepository.FindAsync(filter)).ToList();
+            return (await unitOfWork.TeachedCoursesRepository.GetAsync(filter)).ToList();
+        }
+
+        public async Task<TeachedCourse> GetFirstOrDefaultAsync(Expression<Func<TeachedCourse, bool>> filter)
+        {
+            return (await unitOfWork.TeachedCoursesRepository.GetAsync(filter)).FirstOrDefault();
         }
 
         public async Task<IEnumerable<Course>> GetTeachedCoursesAsync(Guid teacherId)
         {
-            var teachedCourses = (await unitOfWork.TeachedCoursesRepository.FindAsync(tc => tc.TeacherId == teacherId));
+            var teachedCourses = (await unitOfWork.TeachedCoursesRepository.GetAsync(tc => tc.TeacherId == teacherId));
             var courseNames = new List<Course>();
             foreach(var tc in teachedCourses)
             {
-                //courseNames.Append(CourseRepository.FindByCondition(c => c.CourseId == tc.CourseId).FirstOrDefault());
-                courseNames.Add((await unitOfWork.CoursesRepository.FindAsync(c => c.Id == tc.CourseId)).ToList().FirstOrDefault());
+                courseNames.Add((await unitOfWork.CoursesRepository.GetAsync(c => c.Id == tc.CourseId)).ToList().FirstOrDefault());
             }
             return courseNames;
         }

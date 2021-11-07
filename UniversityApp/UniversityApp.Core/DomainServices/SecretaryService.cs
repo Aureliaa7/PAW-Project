@@ -1,5 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Identity;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
@@ -8,44 +8,31 @@ using UniversityApp.Core.DomainEntities;
 using UniversityApp.Core.Exceptions;
 using UniversityApp.Core.Interfaces.Repositories;
 using UniversityApp.Core.Interfaces.Services;
-using UniversityApp.Core.ViewModels;
 
 namespace UniversityApp.Core.DomainServices
 {
     public class SecretaryService : ISecretaryService
     {
         private readonly IUnitOfWork unitOfWork;
-        private readonly IImageService imageService;
         private readonly UserManager<User> userManager;
 
         public SecretaryService(
             IUnitOfWork unitOfWork, 
-            IImageService imageService,
             UserManager<User> userManager)
         {
             this.unitOfWork = unitOfWork;
-            this.imageService = imageService;
             this.userManager = userManager;
         }
 
-        public async Task AddAsync(SecretaryRegistrationViewModel secretaryModel, IFormFile image = null)
+        public async Task AddAsync(Secretary secretary, string password)
         {
-            Secretary secretary = new Secretary
-            {
-                FirstName = secretaryModel.FirstName,
-                LastName = secretaryModel.LastName,
-                Cnp = secretaryModel.Cnp,
-                PhoneNumber = secretaryModel.PhoneNumber,
-                Email = secretaryModel.Email,
-                Image = imageService.GetBytes(image),
-                UserName = secretaryModel.Email
-            };
-
-            var result = await userManager.CreateAsync(secretary, secretaryModel.Password);
+            // Note: First set the UserName because otherwise the insert fails.
+            secretary.UserName = $"{secretary.FirstName}{secretary.LastName}";
+            var result = await userManager.CreateAsync(secretary, password);
 
             if (result.Succeeded)
             {
-                await userManager.AddToRoleAsync(secretary, secretaryModel.Role);
+                await userManager.AddToRoleAsync(secretary, Constants.SecretaryRole);
             }
             else
             {
@@ -60,6 +47,13 @@ namespace UniversityApp.Core.DomainServices
             }
         }
 
+        public async Task DeleteAsync(Guid id)
+        {
+            await CheckIfSecretaryExistsAsync(id);
+            await unitOfWork.SecretariesRepository.DeleteAsync(id);
+            await unitOfWork.SaveChangesAsync();
+        }
+
         public async Task DeleteByCnpAsync(string cnp)
         {
             bool secretaryExists = await unitOfWork.UsersRepository.ExistsAsync(s => s.Cnp == cnp);
@@ -69,28 +63,38 @@ namespace UniversityApp.Core.DomainServices
             }
 
             var secretaryId = (await unitOfWork.SecretariesRepository
-                .FindAsync(s => s.Cnp == cnp))
+                .GetAsync(s => s.Cnp == cnp))
                 .Select(x => x.Id)
                 .FirstOrDefault();
             await unitOfWork.SecretariesRepository.DeleteAsync(secretaryId);
             await unitOfWork.SaveChangesAsync();
         }
 
-        public Task<IQueryable<Secretary>> GetAsync(Expression<System.Func<Secretary, bool>> filter = null)
+        public async Task<IEnumerable<Secretary>> GetAllAsync(Expression<Func<Secretary, bool>> filter = null)
         {
-            return unitOfWork.SecretariesRepository.FindAsync(filter);
+            return (await unitOfWork.SecretariesRepository.GetAsync(filter)).ToList();
+        }
+
+        public async Task<Secretary> GetFirstOrDefaultAsync(Expression<Func<Secretary, bool>> filter)
+        {
+            return (await unitOfWork.SecretariesRepository.GetAsync(filter)).FirstOrDefault();
         }
 
         public async Task UpdateAsync(Secretary secretary)
         {
-            bool secretaryExists = await unitOfWork.SecretariesRepository.ExistsAsync(s => s.Id == secretary.Id);
+            await CheckIfSecretaryExistsAsync(secretary.Id);
+            await unitOfWork.SecretariesRepository.UpdateAsync(secretary);
+            await unitOfWork.SaveChangesAsync();
+        }
+
+        private async Task CheckIfSecretaryExistsAsync(Guid id)
+        {
+            bool secretaryExists = await unitOfWork.UsersRepository.ExistsAsync(s => s.Id == id);
             if (!secretaryExists)
             {
                 throw new EntityNotFoundException($"The searched secretary was not found!");
             }
 
-            await unitOfWork.SecretariesRepository.UpdateAsync(secretary);
-            await unitOfWork.SaveChangesAsync();
         }
     }
 }

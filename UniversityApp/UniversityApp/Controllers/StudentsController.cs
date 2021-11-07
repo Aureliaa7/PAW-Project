@@ -21,7 +21,12 @@ namespace UniversityApp.Controllers
         private SignInManager<User> signManager;
         private UserManager<User> userManager;
         private IUserService userService;
-        public StudentsController(IStudentService studentService, SignInManager<User> signManager, UserManager<User> userManager, IUserService userService)
+
+        public StudentsController(
+            IStudentService studentService, 
+            SignInManager<User> signManager, 
+            UserManager<User> userManager, 
+            IUserService userService)
         {
             this.studentService = studentService;
             this.signManager = signManager;
@@ -41,7 +46,7 @@ namespace UniversityApp.Controllers
             {
                 return NotFound();
             }
-            var student = (await studentService.GetAsync(s => s.Id == id)).FirstOrDefault();
+            var student = await studentService.GetFirstOrDefaultAsync(s => s.Id == id);
             if (student == null)
             {
                 return NotFound();
@@ -60,6 +65,7 @@ namespace UniversityApp.Controllers
         public async Task<IActionResult> Create(List<IFormFile> Image, StudentRegistrationViewModel student)
         {
             var user = userService.CreateUser(Image, String.Concat(student.LastName, student.FirstName), student.Email, student.PhoneNumber);
+            user.Cnp = student.Cnp;
             if(user != null)
             {
                 var result = await userManager.CreateAsync(user, student.Password);

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Threading.Tasks;
+using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -15,23 +16,26 @@ namespace UniversityApp.Controllers
         private readonly IEnrollmentService enrollmentService;
         private readonly IStudentService studentService;
         private readonly ICourseService courseService;
+        private readonly IMapper mapper;
 
 
         public EnrollmentsController(
             IEnrollmentService enrollmentService,
             IStudentService studentService,
-            ICourseService courseService)
+            ICourseService courseService,
+            IMapper mapper)
         {
             this.enrollmentService = enrollmentService;
             this.studentService = studentService;
             this.courseService = courseService;
+            this.mapper = mapper;
         }
 
         [Authorize(Roles = Constants.SecretaryRole)]
         public async Task<IActionResult> Index()
         {
             var enrollments = await enrollmentService.GetAllEnrollmentsAsync();
-            if (enrollments != null)
+            if (enrollments.Any())
             {
                 return View(enrollments);
             }
@@ -41,7 +45,7 @@ namespace UniversityApp.Controllers
         [Authorize(Roles = Constants.SecretaryRole)]
         public async Task<IActionResult> Create()
         {
-            ViewData["CourseTitle"] = new SelectList(await courseService.GetAsync(), "CourseTitle", "CourseTitle");
+            ViewData["CourseTitle"] = new SelectList(await courseService.GetAllAsync(), "CourseTitle", "CourseTitle");
             ViewData["StudentCnp"] = new SelectList(await studentService.GetAsync(), "Cnp", "Cnp");
             return View();
         }
@@ -55,7 +59,7 @@ namespace UniversityApp.Controllers
                 await enrollmentService.CreateEnrollmentAsync(enrollmentModel);
                 return RedirectToAction("Home", "Secretaries");
             }
-            ViewData["CourseTitle"] = new SelectList(await courseService.GetAsync(), "CourseTitle", "CourseTitle");
+            ViewData["CourseTitle"] = new SelectList(await courseService.GetAllAsync(), "CourseTitle", "CourseTitle");
             ViewData["StudentCnp"] = new SelectList(await studentService.GetAsync(), "Cnp", "Cnp");
             return View(enrollmentModel);
         }
@@ -63,7 +67,7 @@ namespace UniversityApp.Controllers
         [Authorize(Roles = "Secretary")]
         public async Task<IActionResult> Delete()
         {
-            ViewData["CourseTitle"] = new SelectList(await courseService.GetAsync(), "CourseTitle", "CourseTitle");
+            ViewData["CourseTitle"] = new SelectList(await courseService.GetAllAsync(), "CourseTitle", "CourseTitle");
             ViewData["StudentCnp"] = new SelectList(await studentService.GetAsync(), "Cnp", "Cnp");
             return View();
         }
@@ -78,6 +82,7 @@ namespace UniversityApp.Controllers
         }
 
         // MOVE THIS TO A SERVICE
+        // Or keep it here for now, maybe it's called from a js file
         public async Task<IActionResult> GetEnrolledStudentName(string courseTitle, string studentCnp)
         {
             var course = await courseService.GetFirstOrDefaultAsync(c => String.Equals(c.CourseTitle, courseTitle));

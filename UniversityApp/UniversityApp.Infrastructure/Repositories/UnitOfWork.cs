@@ -10,14 +10,14 @@ namespace UniversityApp.Infrastructure.Repositories
     public class UnitOfWork : IUnitOfWork
     {
         private readonly UniversityAppContext dbContext;
-        private IRepositoryBase<User> usersRepository;
-        private IRepositoryBase<Student> studentsRepository;
-        private IRepositoryBase<Course> coursesRepository;
-        private IRepositoryBase<Enrollment> enrollmentsRepository;
-        private IRepositoryBase<Secretary> secretariesRepository;
-        private IRepositoryBase<Teacher> teachersRepository;
-        private IRepositoryBase<TeachedCourse> teachedCoursesRepository;
-        private IRepositoryBase<Grade> gradesRepository;
+        private IRepository<User> usersRepository;
+        private IRepository<Student> studentsRepository;
+        private IRepository<Course> coursesRepository;
+        private IRepository<Enrollment> enrollmentsRepository;
+        private IRepository<Secretary> secretariesRepository;
+        private IRepository<Teacher> teachersRepository;
+        private IRepository<TeachedCourse> teachedCoursesRepository;
+        private IRepository<Grade> gradesRepository;
 
 
         public UnitOfWork(UniversityAppContext dbContext)
@@ -25,97 +25,97 @@ namespace UniversityApp.Infrastructure.Repositories
             this.dbContext = dbContext;
         }
 
-        public IRepositoryBase<User> UsersRepository
+        public IRepository<User> UsersRepository
         {
             get
             {
                 if (usersRepository == null)
                 {
-                    usersRepository = new RepositoryBase<User>(dbContext);
+                    usersRepository = new Repository<User>(dbContext);
                 }
                 return usersRepository;
             }
         }
 
-        public IRepositoryBase<Student> StudentsRepository
+        public IRepository<Student> StudentsRepository
         {
             get
             {
                 if (studentsRepository == null)
                 {
-                    studentsRepository = new RepositoryBase<Student>(dbContext);
+                    studentsRepository = new Repository<Student>(dbContext);
                 }
                 return studentsRepository;
             }
         }
 
-        public IRepositoryBase<Course> CoursesRepository
+        public IRepository<Course> CoursesRepository
         {
             get
             {
                 if (coursesRepository == null)
                 {
-                    coursesRepository = new RepositoryBase<Course>(dbContext);
+                    coursesRepository = new Repository<Course>(dbContext);
                 }
                 return coursesRepository;
             }
         }
 
-        public IRepositoryBase<Enrollment> EnrollmentsRepository
+        public IRepository<Enrollment> EnrollmentsRepository
         {
             get
             {
                 if (enrollmentsRepository == null)
                 {
-                    enrollmentsRepository = new RepositoryBase<Enrollment>(dbContext);
+                    enrollmentsRepository = new Repository<Enrollment>(dbContext);
                 }
                 return enrollmentsRepository;
             }
         }
 
-        public IRepositoryBase<Secretary> SecretariesRepository
+        public IRepository<Secretary> SecretariesRepository
         {
             get
             {
                 if (secretariesRepository == null)
                 {
-                    secretariesRepository = new RepositoryBase<Secretary>(dbContext);
+                    secretariesRepository = new Repository<Secretary>(dbContext);
                 }
                 return secretariesRepository;
             }
         }
 
-        public IRepositoryBase<Teacher> TeachersRepository
+        public IRepository<Teacher> TeachersRepository
         {
             get
             {
                 if (teachersRepository == null)
                 {
-                    teachersRepository = new RepositoryBase<Teacher>(dbContext);
+                    teachersRepository = new Repository<Teacher>(dbContext);
                 }
                 return teachersRepository;
             }
         }
 
-        public IRepositoryBase<TeachedCourse> TeachedCoursesRepository
+        public IRepository<TeachedCourse> TeachedCoursesRepository
         {
             get
             {
                 if (teachedCoursesRepository == null)
                 {
-                    teachedCoursesRepository = new RepositoryBase<TeachedCourse>(dbContext);
+                    teachedCoursesRepository = new Repository<TeachedCourse>(dbContext);
                 }
                 return teachedCoursesRepository;
             }
         }
 
-        public IRepositoryBase<Grade> GradesRepository
+        public IRepository<Grade> GradesRepository
         {
             get
             {
                 if (gradesRepository == null)
                 {
-                    gradesRepository = new RepositoryBase<Grade>(dbContext);
+                    gradesRepository = new Repository<Grade>(dbContext);
                 }
                 return gradesRepository;
             }

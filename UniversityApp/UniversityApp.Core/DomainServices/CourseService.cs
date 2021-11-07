@@ -28,7 +28,7 @@ namespace UniversityApp.Core.DomainServices
             }
 
             var addedCourse = await unitOfWork.CoursesRepository.CreateAsync(course);
-            await unitOfWork.SaveChangesAsync(); ;
+            await unitOfWork.SaveChangesAsync();
 
             return addedCourse;
         }
@@ -51,23 +51,23 @@ namespace UniversityApp.Core.DomainServices
             return updatedCourse;
         }
 
-        public async Task<IEnumerable<Course>> GetAsync(Expression<Func<Course, bool>> filter = null)
+        public async Task<IEnumerable<Course>> GetAllAsync(Expression<Func<Course, bool>> filter = null)
         {
-            return (await unitOfWork.CoursesRepository.FindAsync(filter)).ToList();
+            return (await unitOfWork.CoursesRepository.GetAsync(filter)).ToList();
         }
 
         // returns all the students taking a certain course
         public async Task<IEnumerable<Student>> GetEnrolledStudents(Guid courseId)
         {
             await CheckIfCourseExistsAsync(courseId);
-            var enrollments = await unitOfWork.EnrollmentsRepository.FindAsync(enrollment => enrollment.CourseId == courseId);
+            var enrollments = await unitOfWork.EnrollmentsRepository.GetAsync(enrollment => enrollment.CourseId == courseId);
             var enrolledStudents = enrollments.Select(enrollment => enrollment.Student).ToList();
             return enrolledStudents;
         }
 
         public async Task<Course> GetFirstOrDefaultAsync(Expression<Func<Course, bool>> filter)
         {
-            return (await unitOfWork.CoursesRepository.FindAsync(filter)).FirstOrDefault();
+            return (await unitOfWork.CoursesRepository.GetAsync(filter)).FirstOrDefault();
         }
 
         private async Task CheckIfCourseExistsAsync(Guid id)
@@ -78,6 +78,11 @@ namespace UniversityApp.Core.DomainServices
             {
                 throw new EntityNotFoundException($"The course with the id {id} was not found!");
             }
+        }
+
+        public async Task<bool> ExistsAsync(Expression<Func<Course, bool>> filter)
+        {
+            return await unitOfWork.CoursesRepository.ExistsAsync(filter);
         }
     }
 }

@@ -16,5 +16,7 @@ namespace UniversityApp.Core.Interfaces.Services
         Task UpdateAsync(Teacher teacher);
 
         Task DeleteAsync(Guid id);
+
+        Task<Teacher> GetFirstOrDefaultAsync(Expression<Func<Teacher, bool>> filter);
     }
 }

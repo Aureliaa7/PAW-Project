@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace UniversityApp.Core.DomainEntities
 {
-    public partial class Enrollment
+    public class Enrollment
     {
         public Enrollment()
         {

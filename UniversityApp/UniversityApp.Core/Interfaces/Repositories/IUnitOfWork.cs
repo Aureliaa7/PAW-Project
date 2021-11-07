@@ -6,21 +6,21 @@ namespace UniversityApp.Core.Interfaces.Repositories
 {
     public interface IUnitOfWork
     {
-        IRepositoryBase<User> UsersRepository { get; }
+        IRepository<User> UsersRepository { get; }
 
-        IRepositoryBase<Student> StudentsRepository { get; }
+        IRepository<Student> StudentsRepository { get; }
 
-        IRepositoryBase<Course> CoursesRepository { get; }
+        IRepository<Course> CoursesRepository { get; }
 
-        IRepositoryBase<Enrollment> EnrollmentsRepository { get; }
+        IRepository<Enrollment> EnrollmentsRepository { get; }
 
-        IRepositoryBase<Secretary> SecretariesRepository { get; }
+        IRepository<Secretary> SecretariesRepository { get; }
 
-        IRepositoryBase<Teacher> TeachersRepository { get; }
+        IRepository<Teacher> TeachersRepository { get; }
 
-        IRepositoryBase<TeachedCourse> TeachedCoursesRepository { get; }
+        IRepository<TeachedCourse> TeachedCoursesRepository { get; }
 
-        IRepositoryBase<Grade> GradesRepository { get; }
+        IRepository<Grade> GradesRepository { get; }
 
         Task SaveChangesAsync();
     }

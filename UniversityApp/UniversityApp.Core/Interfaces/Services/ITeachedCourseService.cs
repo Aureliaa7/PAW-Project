@@ -16,5 +16,7 @@ namespace UniversityApp.Core.Interfaces.Services
         Task<IEnumerable<TeachedCourse>> GetAsync(Expression<Func<TeachedCourse, bool>> filter = null);
 
         Task UpdateAsync(TeachedCourse teachedCourse);
+
+        Task<TeachedCourse> GetFirstOrDefaultAsync(Expression<Func<TeachedCourse, bool>> filter);
     }
 }

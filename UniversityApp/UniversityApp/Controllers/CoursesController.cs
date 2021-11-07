@@ -1,9 +1,12 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
+using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using UniversityApp.Core;
 using UniversityApp.Core.DomainEntities;
+using UniversityApp.Core.DTOs;
 using UniversityApp.Core.Interfaces.Services;
 
 namespace UniversityApp.Controllers
@@ -11,16 +14,18 @@ namespace UniversityApp.Controllers
     public class CoursesController : Controller
     {
         private readonly ICourseService courseService;
+        private readonly IMapper mapper;
 
-        public CoursesController(ICourseService courseService)
+        public CoursesController(ICourseService courseService, IMapper mapper)
         {
             this.courseService = courseService;
+            this.mapper = mapper;
         }
 
         [Authorize(Roles = Constants.SecretaryRole)]
         public async Task<IActionResult> Index()
         {
-            return View(await courseService.GetAsync());
+            return View(mapper.Map<IEnumerable<CourseDto>>(await courseService.GetAllAsync()));
         }
 
         [Authorize(Roles = Constants.SecretaryRole)]
@@ -32,14 +37,14 @@ namespace UniversityApp.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(
-            [Bind("CourseId,CourseTitle,NoCredits,Year,Semester")] Course courses)
+            [Bind("Id,CourseTitle,NoCredits,Year,Semester")] CourseDto course)
         {
             if (ModelState.IsValid)
             {
-                await courseService.AddAsync(courses);
+                await courseService.AddAsync(mapper.Map<Course>(course));
                 return RedirectToAction(nameof(Index));
             }
-            return View(courses);
+            return View(course);
         }
 
         [Authorize(Roles = Constants.SecretaryRole)]
@@ -55,12 +60,12 @@ namespace UniversityApp.Controllers
             {
                 return NotFound();
             }
-            return View(course);
+            return View(mapper.Map<CourseDto>(course));
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(Guid id, [Bind("CourseId,CourseTitle,NoCredits,Year,Semester")] Course course)
+        public async Task<IActionResult> Edit(Guid id, [Bind("Id,CourseTitle,NoCredits,Year,Semester")] CourseDto course)
         {
             if (id != course.Id)
             {
@@ -69,7 +74,7 @@ namespace UniversityApp.Controllers
 
             if (ModelState.IsValid)
             {
-                await courseService.UpdateAsync(course);
+                await courseService.UpdateAsync(mapper.Map<Course>(course));
                 var courseFound = await courseService.GetFirstOrDefaultAsync(c => c.Id == course.Id);
                 if (courseFound == null)
                 {
@@ -93,7 +98,7 @@ namespace UniversityApp.Controllers
             {
                 return NotFound();
             }
-            return View(course);
+            return View(mapper.Map<CourseDto>(course));
         }
 
         [HttpPost, ActionName("Delete")]

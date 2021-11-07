@@ -30,7 +30,7 @@ namespace UniversityApp.Controllers
         [Authorize]
         public async Task<IActionResult> Create()
         {
-            ViewData["CourseTitle"] = new SelectList(await courseService.GetAsync(), "CourseTitle", "CourseTitle");
+            ViewData["CourseTitle"] = new SelectList(await courseService.GetAllAsync(), "CourseTitle", "CourseTitle");
             ViewData["TeacherCnp"] = new SelectList(await teacherService.GetAsync(), "Cnp", "Cnp");
             return View();
         }
@@ -45,7 +45,7 @@ namespace UniversityApp.Controllers
                 await teachedCourseService.AssignCourseAsync(model);
                 return RedirectToAction("Home", "Secretaries");
             }
-            ViewData["CourseTitle"] = new SelectList(await courseService.GetAsync(), "CourseTitle", "CourseTitle");
+            ViewData["CourseTitle"] = new SelectList(await courseService.GetAllAsync(), "CourseTitle", "CourseTitle");
             ViewData["TeacherCnp"] = new SelectList(await teacherService.GetAsync(), "Cnp", "Cnp");
             return View(model);
         }
@@ -58,12 +58,12 @@ namespace UniversityApp.Controllers
                 return NotFound();
             }
 
-            var teachedCourses = (await teachedCourseService.GetAsync(tc => tc.Id == id)).FirstOrDefault();
+            var teachedCourses = await teachedCourseService.GetFirstOrDefaultAsync(tc => tc.Id == id);
             if (teachedCourses == null)
             {
                 return NotFound();
             }
-            ViewData["CourseId"] = new SelectList(await courseService.GetAsync(), "CourseId", "CourseId", teachedCourses.CourseId);
+            ViewData["CourseId"] = new SelectList(await courseService.GetAllAsync(), "CourseId", "CourseId", teachedCourses.CourseId);
             ViewData["TeacherId"] = new SelectList(await teacherService.GetAsync(), "TeacherId", "TeacherId", teachedCourses.TeacherId);
             return View(teachedCourses);
         }
@@ -90,7 +90,7 @@ namespace UniversityApp.Controllers
                 }
                 return RedirectToAction("Home", "Secretaries");
             }
-            ViewData["CourseId"] = new SelectList(await courseService.GetAsync(), "CourseId", "CourseId", teachedCourses.CourseId);
+            ViewData["CourseId"] = new SelectList(await courseService.GetAllAsync(), "CourseId", "CourseId", teachedCourses.CourseId);
             ViewData["TeacherId"] = new SelectList(await teacherService.GetAsync(), "TeacherId", "TeacherId", teachedCourses.TeacherId);
             return View(teachedCourses);
         }
@@ -99,12 +99,13 @@ namespace UniversityApp.Controllers
         // this function will print a message if the course is already assigned to the same teacher i want to assign the course 
         public async Task<IActionResult> GetInfo(string courseTitle, string teacherCnp)
         {
-            var teacher = (await teacherService.GetAsync(t => String.Equals(t.Cnp, teacherCnp))).FirstOrDefault();
-            var course = (await courseService.GetAsync(c => String.Equals(c.CourseTitle, courseTitle))).FirstOrDefault();
+            var teacher = await teacherService.GetFirstOrDefaultAsync(t => String.Equals(t.Cnp, teacherCnp));
+            var course = await courseService.GetFirstOrDefaultAsync(c => String.Equals(c.CourseTitle, courseTitle));
             string info = " ";
             if(teacher != null && course != null)
             {
-                var teachedCourse = (await teachedCourseService.GetAsync(tc => (tc.CourseId == course.Id) && (tc.TeacherId == teacher.Id))).FirstOrDefault();
+                var teachedCourse = await teachedCourseService.GetFirstOrDefaultAsync(
+                    tc => (tc.CourseId == course.Id) && (tc.TeacherId == teacher.Id));
                 if(teachedCourse != null)
                 {
                     info += "this item already exists!";

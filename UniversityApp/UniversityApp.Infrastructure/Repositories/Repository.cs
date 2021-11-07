@@ -8,16 +8,16 @@ using UniversityApp.Interfaces;
 
 namespace UniversityApp.Repositories
 {
-    public class RepositoryBase<T> : IRepositoryBase<T> where T : class
+    public class Repository<T> : IRepository<T> where T : class
     {
         protected UniversityAppContext Context { get; set; }
 
-        public RepositoryBase(UniversityAppContext context)
+        public Repository(UniversityAppContext context)
         {
             Context = context;
         }
 
-        public Task<IQueryable<T>> FindAsync(Expression<Func<T, bool>> expression = null)
+        public Task<IQueryable<T>> GetAsync(Expression<Func<T, bool>> expression = null)
         {
             if (expression != null)
             {
@@ -36,13 +36,6 @@ namespace UniversityApp.Repositories
         {
             Context.Set<T>().Update(entity);
 
-            return Task.FromResult(entity);
-        }
-
-        //TODO remove this one
-        public Task<T> DeleteAsync(T entity)
-        {
-            Context.Set<T>().Remove(entity);
             return Task.FromResult(entity);
         }
 

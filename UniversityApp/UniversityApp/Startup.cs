@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using UniversityApp.Infrastructure;
 using UniversityApp.Presentation;
 
 namespace UniversityApp
@@ -23,6 +24,8 @@ namespace UniversityApp
             services.RegisterServices();
             services.RegisterDbContext(Configuration);
             services.ConfigureIdentity();
+
+            services.AddAutoMapper(typeof(MappingConfigurations));
 
             services.AddDistributedMemoryCache(); //??
 

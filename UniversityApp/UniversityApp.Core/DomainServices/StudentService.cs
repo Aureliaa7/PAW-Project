@@ -37,45 +37,50 @@ namespace UniversityApp.Core.DomainServices
             await unitOfWork.SaveChangesAsync();
         }
 
-        //TODO get rid of this one
         public async Task DeleteAsync(DeleteStudentViewModel model)
         {
-            var studentToBeDeleted = (await unitOfWork.StudentsRepository.FindAsync(s => (s.StudyYear == model.StudyYear)
+            var studentToBeDeleted = (await unitOfWork.StudentsRepository.GetAsync(s => (s.StudyYear == model.StudyYear)
                 && (String.Equals(s.Section, model.SectionName)) && (String.Equals(s.Cnp, model.Cnp)))).FirstOrDefault();
-            if (studentToBeDeleted != null)
+            if (studentToBeDeleted == null)
             {
-                await unitOfWork.StudentsRepository.DeleteAsync(studentToBeDeleted);
-                await unitOfWork.SaveChangesAsync();
+                throw new EntityNotFoundException($"The student was not found!");
             }
+
+            await unitOfWork.StudentsRepository.DeleteAsync(studentToBeDeleted.Id);
+            await unitOfWork.SaveChangesAsync();
         }
 
         public async Task DeleteAsync(Guid id)
         {
-            bool studentExists = await unitOfWork.StudentsRepository.ExistsAsync(s => s.Id == id);
-            if (!studentExists)
-            {
-                throw new EntityNotFoundException($"The student with the id {id} was not found!");
-            }
-
+            await CheckIfStudentExistsAsync(id);
             await unitOfWork.StudentsRepository.DeleteAsync(id);
             await unitOfWork.SaveChangesAsync();
         }
 
         public async Task<IEnumerable<Student>> GetAsync(Expression<Func<Student, bool>> filter = null)
         {
-            return (await unitOfWork.StudentsRepository.FindAsync(filter)).ToList();
+            return (await unitOfWork.StudentsRepository.GetAsync(filter)).ToList();
+        }
+
+        public async Task<Student> GetFirstOrDefaultAsync(Expression<Func<Student, bool>> filter)
+        {
+            return (await unitOfWork.StudentsRepository.GetAsync(filter)).FirstOrDefault();
         }
 
         public async Task UpdateAsync(Student student)
         {
-            bool studentExists = await unitOfWork.StudentsRepository.ExistsAsync(s => s.Id == student.Id);
-            if (!studentExists)
-            {
-                throw new EntityNotFoundException($"The student with the id {student.Id} was not found!");
-            }
-
+            await CheckIfStudentExistsAsync(student.Id);
             await unitOfWork.StudentsRepository.DeleteAsync(student.Id);
             await unitOfWork.SaveChangesAsync();
+        }
+
+        private async Task CheckIfStudentExistsAsync(Guid id)
+        {
+            bool studentExists = await unitOfWork.StudentsRepository.ExistsAsync(s => s.Id == id);
+            if (!studentExists)
+            {
+                throw new EntityNotFoundException($"The student with the id {id} was not found!");
+            }
         }
     }
 }

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -31,10 +30,11 @@ namespace UniversityApp.Controllers
         public async Task<IActionResult> Create()
         {
             ViewData["CourseTitle"] = new SelectList(await courseService.GetAllAsync(), "CourseTitle", "CourseTitle");
+            //it would be better/easier for user to see the teacher's name instead of their cnp
+            // TODO make this change 
             ViewData["TeacherCnp"] = new SelectList(await teacherService.GetAsync(), "Cnp", "Cnp");
             return View();
         }
-
         
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -63,6 +63,7 @@ namespace UniversityApp.Controllers
             {
                 return NotFound();
             }
+            //TODO replace course id and teacher id with the names
             ViewData["CourseId"] = new SelectList(await courseService.GetAllAsync(), "CourseId", "CourseId", teachedCourses.CourseId);
             ViewData["TeacherId"] = new SelectList(await teacherService.GetAsync(), "TeacherId", "TeacherId", teachedCourses.TeacherId);
             return View(teachedCourses);

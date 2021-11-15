@@ -91,13 +91,15 @@ function get_info() {
 function GetUserPicture() {
     $(document).ready(function () {
         $.ajax({
-            url: "/Account/GetUserImage",
+            url: "/Accounts/GetCurrentUserProfileImage",
             type: "GET",
             success: function (data) {
-                console.log(data);
                 if (document.getElementById("UserPic") != null) {
                     if (data != null) {
                         document.getElementById("UserPic").src = data;
+                    }
+                    else {
+                        document.getElementById("UserPic").src = "/images/defaultProfileImage.jpg";
                     }
                 }
             },
@@ -106,4 +108,14 @@ function GetUserPicture() {
             }
         });
     });
+}
+
+
+function setNotFoundBackgroundImage() {
+    var pageBody = document.getElementById("page-body");
+    pageBody.style.backgroundImage = "url('/images/404-image.jpg')";
+}
+
+function clearSessionStorage() {
+    sessionStorage.clear();
 }

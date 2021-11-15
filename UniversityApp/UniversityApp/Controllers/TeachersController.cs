@@ -3,33 +3,40 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using UniversityApp.Core;
 using UniversityApp.Core.DomainEntities;
+using UniversityApp.Core.DTOs;
+using UniversityApp.Core.Exceptions;
 using UniversityApp.Core.Interfaces.Services;
 using UniversityApp.Core.ViewModels;
+using UniversityApp.Presentation.Controllers;
 
 namespace UniversityApp.Controllers
 {
     public class TeachersController : Controller
     {
         private readonly ITeacherService teacherService;
-        private SignInManager<User> signManager;
-        private UserManager<User> userManager;
-        private readonly IUserService userService;
+        private readonly SignInManager<User> signManager;
+        private readonly UserManager<User> userManager;
+        private readonly IMapper mapper;
+        private readonly IImageService imageService;
+
         public TeachersController(
             ITeacherService teacherService, 
             SignInManager<User> signManager, 
-            UserManager<User> userManager, 
-            IUserService userService)
+            UserManager<User> userManager,
+            IMapper mapper,
+            IImageService imageService)
         {
             this.teacherService = teacherService;
             this.signManager = signManager;
             this.userManager = userManager;
-            this.userService = userService;
+            this.mapper = mapper;
+            this.imageService = imageService;
         }
 
         [Authorize(Roles = Constants.SecretaryRole)]
@@ -46,62 +53,37 @@ namespace UniversityApp.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(List<IFormFile> Image, TeacherRegistrationViewModel teacherModel)
+        public async Task<IActionResult> Create(TeacherRegistrationViewModel teacherModel)
         {
-            var user = userService.CreateUser(Image, String.Concat(teacherModel.LastName, teacherModel.FirstName), teacherModel.Email, teacherModel.PhoneNumber);
-            var result = await userManager.CreateAsync(user, teacherModel.Password);
-            if (result.Succeeded)
-            {
-                teacherModel.Image = user.Image;
-                await teacherService.AddAsync(teacherModel, user.Id);
-                await userManager.AddToRoleAsync(user, teacherModel.Role);
-                return RedirectToAction("Create", "TeachedCourses");
-            }
-            else
-            {
-                foreach (var error in result.Errors)
-                {
-                    ModelState.AddModelError("", error.Description);
-                }
-            }
+            var mappedTeacher = mapper.Map<Teacher>(teacherModel);
+            mappedTeacher.Image = imageService.GetBytes(teacherModel.Image);
 
+            try
+            {
+                await teacherService.AddAsync(mappedTeacher, teacherModel.Password);
+
+                return RedirectToAction("Index", "Teachers");
+            }
+            catch (FailedUserRegistrationException ex)
+            {
+                //TODO display these messages
+            }
             return View(teacherModel);
         }
 
         [Authorize(Roles = Constants.SecretaryRole)]
         public async Task<IActionResult> Edit(Guid? id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
-            var teacher = await teacherService.GetFirstOrDefaultAsync(t => t.Id == id);
-
-            if (teacher == null)
-            {
-                return NotFound();
-            }
-            return View(teacher);
+            return await GetTeacherView(id);
         }
-
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(Guid id, [Bind("TeacherId,FirstName,LastName,PhoneNumber,Email,Cnp,UserId,Degree")] Teacher teacher)
+        public async Task<IActionResult> Edit(Guid id, [Bind("Id,FirstName,LastName,PhoneNumber,Email,Cnp,UserId,Degree")] Teacher teacher)
         {
-            if (id != teacher.Id)
-            {
-                return NotFound();
-            }
-
             if (ModelState.IsValid)
             {
                 await teacherService.UpdateAsync(teacher);
-                var teacherFound = await teacherService.GetFirstOrDefaultAsync(t => t.Id == teacher.Id);
-                if (teacherFound == null)
-                {
-                    return NotFound();
-                }
                 return RedirectToAction(nameof(Index));
             }
             return View(teacher);
@@ -110,34 +92,24 @@ namespace UniversityApp.Controllers
         [Authorize(Roles = Constants.SecretaryRole)]
         public async Task<IActionResult> Delete(Guid? id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
-            var teacher = await teacherService.GetFirstOrDefaultAsync(t => t.Id == id);
-            if (teacher == null)
-            {
-                return NotFound();
-            }
-            return View(teacher);
+            return await GetTeacherView(id);
         }
-
 
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(Guid id)
         {
             var teacher = await teacherService.GetFirstOrDefaultAsync(t => t.Id == id);
-            var user = (await userService.GetAsync(u => String.Equals(u.Id, teacher.Id))).FirstOrDefault();
             await teacherService.DeleteAsync(teacher.Id);
-            await userService.DeleteAsync(teacher.Id);
             return RedirectToAction(nameof(Index));
         }
 
+        //this does not belong here.
+        //TODO check if is called from a js file and if not, delete it
         public async Task<IActionResult> GetCourses(Guid id, [FromServices] ITeachedCourseService teachedCourseService)
         {
             var courses = await teachedCourseService.GetTeachedCoursesAsync(id);
-            return View(courses);
+            return View(mapper.Map<IEnumerable<CourseDto>>(courses));
         }
 
         [Authorize(Roles = Constants.TeacherRole)]
@@ -159,13 +131,12 @@ namespace UniversityApp.Controllers
         [Authorize(Roles = Constants.TeacherRole)]
         public async Task<IActionResult> TeachedCourses([FromServices]ITeachedCourseService teachedCourseService)
         {
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            var teacher = await teacherService.GetFirstOrDefaultAsync(t => String.Equals(t.Id, userId));
-            Guid teacherId = teacher.Id;
-            var courses = await teachedCourseService.GetTeachedCoursesAsync(teacherId);
-            return View(courses);
+            var teacherId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var courses = await teachedCourseService.GetTeachedCoursesAsync(new Guid(teacherId));
+            return View(mapper.Map<IEnumerable<CourseDto>>(courses));
         }
 
+        //TODO move this to StudentsController
         public async Task<IActionResult> GetStudents(Guid id, [FromServices] ICourseService courseService, [FromServices] IEnrollmentService enrollmentService)
         {
             var students = await courseService.GetEnrolledStudents(id);
@@ -186,6 +157,20 @@ namespace UniversityApp.Controllers
                 });
             }
             return View(studentsToBeReturned);
+        }
+
+        private async Task<IActionResult> GetTeacherView(Guid? id)
+        {
+            if (id == null)
+            {
+                return RedirectToAction(nameof(ErrorsController.EntityNotFound), "Errors");
+            }
+            var teacher = await teacherService.GetFirstOrDefaultAsync(t => t.Id == id);
+            if (teacher == null)
+            {
+                return RedirectToAction(nameof(ErrorsController.EntityNotFound), "Errors");
+            }
+            return View(teacher);
         }
     }
 }

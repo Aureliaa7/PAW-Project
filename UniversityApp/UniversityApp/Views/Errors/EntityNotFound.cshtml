@@ -1,0 +1,25 @@
+﻿@{
+    if (User.IsInRole("Secretary"))
+    {
+        Layout = "~/Views/Shared/_SecretariesLayout.cshtml";
+    }
+    else if (User.IsInRole("Teacher"))
+    {
+        Layout = "~/Views/Shared/_TeachersLayout.cshtml";
+    }
+    else if (User.IsInRole("Student"))
+    {
+        Layout = "~/Views/Shared/_StudentsLayout.cshtml";
+    }
+    else
+    {
+        Layout = "~/Views/Shared/_Layout.cshtml";
+    }
+}
+
+@section Scripts {
+    <script src="~/js/site.js"></script>
+    <script type="text/javascript">
+        $(document).ready(function () { setNotFoundBackgroundImage(); });
+    </script>
+}

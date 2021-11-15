@@ -8,6 +8,7 @@ using UniversityApp.Core;
 using UniversityApp.Core.DomainEntities;
 using UniversityApp.Core.DTOs;
 using UniversityApp.Core.Interfaces.Services;
+using UniversityApp.Presentation.Controllers;
 
 namespace UniversityApp.Controllers
 {
@@ -37,7 +38,7 @@ namespace UniversityApp.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(
-            [Bind("Id,CourseTitle,NoCredits,Year,Semester")] CourseDto course)
+            [Bind("CourseTitle,NoCredits,Year,Semester")] CourseDto course)
         {
             if (ModelState.IsValid)
             {
@@ -52,13 +53,13 @@ namespace UniversityApp.Controllers
         {
             if (id == null)
             {
-                return NotFound();
+                return RedirectToAction(nameof(ErrorsController.EntityNotFound), "Errors");
             }
             var course = await courseService.GetFirstOrDefaultAsync(c => c.Id == id);
 
             if (course == null)
             {
-                return NotFound();
+                return RedirectToAction(nameof(ErrorsController.EntityNotFound), "Errors");
             }
             return View(mapper.Map<CourseDto>(course));
         }
@@ -67,18 +68,13 @@ namespace UniversityApp.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(Guid id, [Bind("Id,CourseTitle,NoCredits,Year,Semester")] CourseDto course)
         {
-            if (id != course.Id)
-            {
-                return NotFound();
-            }
-
             if (ModelState.IsValid)
             {
                 await courseService.UpdateAsync(mapper.Map<Course>(course));
                 var courseFound = await courseService.GetFirstOrDefaultAsync(c => c.Id == course.Id);
                 if (courseFound == null)
                 {
-                    return NotFound();
+                    return RedirectToAction(nameof(ErrorsController.EntityNotFound), "Errors");
                 }
 
                 return RedirectToAction(nameof(Index));
@@ -91,12 +87,12 @@ namespace UniversityApp.Controllers
         {
             if (id == null)
             {
-                return NotFound();
+                return RedirectToAction(nameof(ErrorsController.EntityNotFound), "Errors");
             }
             var course = await courseService.GetFirstOrDefaultAsync(c => c.Id == id);
             if (course == null)
             {
-                return NotFound();
+                return RedirectToAction(nameof(ErrorsController.EntityNotFound), "Errors");
             }
             return View(mapper.Map<CourseDto>(course));
         }

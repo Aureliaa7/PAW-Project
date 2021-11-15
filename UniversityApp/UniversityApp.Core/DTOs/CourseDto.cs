@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using UniversityApp.Core.DomainEntities;
 
 namespace UniversityApp.Core.DTOs
 {
@@ -15,17 +13,15 @@ namespace UniversityApp.Core.DTOs
 
         [Required]
         [Display(Name = "Number of credits")]
+        [Range(Constants.MinNumberOfCredits, Constants.MaxNumberOfCredits)]
         public int NoCredits { get; set; }
 
         [Required]
+        [Range(Constants.MinStudyYear, Constants.MaxStudyYear)]
         public int Year { get; set; }
 
         [Required]
+        [Range(1, 2, ErrorMessage = "The semester can be either 1 or 2")]
         public int Semester { get; set; }
-
-        //TODO check if these navigation properties are indeed needed
-        public virtual ICollection<Enrollment> Enrollments { get; set; }
-
-        public virtual ICollection<TeachedCourse> TeachedCourses { get; set; }
     }
 }

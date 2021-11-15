@@ -1,14 +1,10 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Microsoft.AspNetCore.Http;
+using System.ComponentModel.DataAnnotations;
 
 namespace UniversityApp.Core.ViewModels
 {
     public class TeacherRegistrationViewModel
     {
-        public TeacherRegistrationViewModel()
-        {
-            Role = "Teacher";
-        }
-
         [Required]
         [Display(Name = "First name")]
         public string FirstName { get; set; }
@@ -37,8 +33,6 @@ namespace UniversityApp.Core.ViewModels
         [Display(Name = "Access Code")]
         public string Password { get; set; }
         
-        public string Role { get; private set; }
-        [Required]
-        public byte[] Image { get; set; }
+        public IFormFile Image { get; set; }
     }
 }

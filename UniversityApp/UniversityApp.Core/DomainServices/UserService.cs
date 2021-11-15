@@ -1,64 +1,49 @@
-﻿using Microsoft.AspNetCore.Http;
-using System;
+﻿using Microsoft.AspNetCore.Identity;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Linq.Expressions;
 using System.Threading.Tasks;
 using UniversityApp.Core.DomainEntities;
-using UniversityApp.Core.Exceptions;
 using UniversityApp.Core.Interfaces.Repositories;
-using UniversityApp.Core.Interfaces.Services;
 
 namespace UniversityApp.Core.DomainServices
 {
-    public class UserService : IUserService
+    public class UserService
     {
-        private readonly IUnitOfWork unitOfWork;
+        protected readonly IUnitOfWork unitOfWork;
+        private readonly UserManager<User> userManager;
 
-        public UserService(IUnitOfWork unitOfWork)
+        public UserService(IUnitOfWork unitOfWork, UserManager<User> userManager)
         {
             this.unitOfWork = unitOfWork;
+            this.userManager = userManager;
         }
 
-        //TODO remove this method
-        public User CreateUser(List<IFormFile> images, string userName, string email, string phoneNumber)
+        protected async Task<List<string>> SaveUserAsync(User user, string password, string role)
         {
-            var user = new User
+            // Note: First set the UserName because otherwise the insert fails.
+            user.UserName = $"{user.FirstName}{user.LastName}";
+            var result = await userManager.CreateAsync(user, password);
+
+            var errorMessages = new List<string>();
+
+            if (result.Succeeded)
             {
-                UserName = userName,
-                Email = email,
-                PhoneNumber = phoneNumber
-            };
-            foreach (var item in images)
-            {
-                if(item.Length > 0)
-                {
-                    using(var stream = new MemoryStream())
-                    {
-                        item.CopyTo(stream);
-                        user.Image = stream.ToArray();
-                    }
-                }
+                await userManager.AddToRoleAsync(user, role);
             }
-            return user;
-        }
-
-        public async Task DeleteAsync(Guid id)
-        {
-            bool userExists = await unitOfWork.UsersRepository.ExistsAsync(u => u.Id == id);
-            if (!userExists)
+            else
             {
-                throw new EntityNotFoundException($"The user with the id {id} was not found!");
+                result.Errors.ToList().ForEach(e => errorMessages.Add(e.Description));
             }
 
-            await unitOfWork.UsersRepository.DeleteAsync(id);
-            await unitOfWork.SaveChangesAsync();
+            return errorMessages;
         }
 
-        public async Task<IEnumerable<User>> GetAsync(Expression<Func<User, bool>> filter = null)
+        protected void SetNewPropertyValues(User existingUser, User newUser)
         {
-            return (await unitOfWork.UsersRepository.GetAsync(filter)).ToList();
+            existingUser.LastName = newUser.LastName;
+            existingUser.FirstName = newUser.FirstName;
+            existingUser.PhoneNumber = newUser.PhoneNumber;
+            existingUser.Cnp = newUser.Cnp;
         }
     }
 }

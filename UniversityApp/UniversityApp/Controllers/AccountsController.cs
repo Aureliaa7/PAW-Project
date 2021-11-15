@@ -12,14 +12,14 @@ using UniversityApp.Core.Exceptions;
 
 namespace UniversityApp.Controllers
 {
-    public class AccountController : Controller
+    public class AccountsController : Controller
     {
         private readonly UserManager<User> userManager;
         private readonly IHttpContextAccessor contextAccessor;
         private readonly IAccountService accountService;
         private readonly IImageService imageService;
 
-        public AccountController(
+        public AccountsController(
             UserManager<User> userManager, 
             IHttpContextAccessor contextAccessor, 
             IAccountService accountService, 
@@ -105,13 +105,13 @@ namespace UniversityApp.Controllers
             return RedirectToAction(nameof(HomeController.Index), "Home");
         }
 
-        public JsonResult GetUserImage()
+        public async Task<JsonResult> GetCurrentUserProfileImage()
         {
-            var user = userManager.GetUserAsync(User);
-            string base64Image = "";
+            var user = await userManager.GetUserAsync(User);
+            string base64Image = null;
             if (user != null)
             {
-                base64Image = imageService.GetUserProfileImage(user.Result); 
+                base64Image = imageService.GetUserProfileImage(user); 
             }
             return Json(base64Image);
         }

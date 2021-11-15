@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
@@ -11,38 +12,16 @@ using UniversityApp.Core.Interfaces.Services;
 
 namespace UniversityApp.Core.DomainServices
 {
-    public class SecretaryService : ISecretaryService
+    public class SecretaryService : UserService, ISecretaryService
     {
-        private readonly IUnitOfWork unitOfWork;
-        private readonly UserManager<User> userManager;
-
-        public SecretaryService(
-            IUnitOfWork unitOfWork, 
-            UserManager<User> userManager)
-        {
-            this.unitOfWork = unitOfWork;
-            this.userManager = userManager;
-        }
+        public SecretaryService(IUnitOfWork unitOfWork, UserManager<User> userManager)
+            : base(unitOfWork, userManager) { }
 
         public async Task AddAsync(Secretary secretary, string password)
         {
-            // Note: First set the UserName because otherwise the insert fails.
-            secretary.UserName = $"{secretary.FirstName}{secretary.LastName}";
-            var result = await userManager.CreateAsync(secretary, password);
-
-            if (result.Succeeded)
+            var errorMessages = await SaveUserAsync(secretary, password, Constants.SecretaryRole);
+            if (errorMessages.Any())
             {
-                await userManager.AddToRoleAsync(secretary, Constants.SecretaryRole);
-            }
-            else
-            {
-                var errorMessages = new List<string>();
-
-                foreach (var error in result.Errors)
-                {
-                    errorMessages.Add(error.Description);
-                }
-
                 throw new FailedUserRegistrationException(string.Join("\n", errorMessages));
             }
         }
@@ -83,7 +62,10 @@ namespace UniversityApp.Core.DomainServices
         public async Task UpdateAsync(Secretary secretary)
         {
             await CheckIfSecretaryExistsAsync(secretary.Id);
-            await unitOfWork.SecretariesRepository.UpdateAsync(secretary);
+            var existingSecretary = (await unitOfWork.SecretariesRepository.GetAsync(x => x.Id == secretary.Id)).FirstOrDefault();
+            SetNewPropertyValues(existingSecretary, secretary);
+
+            await unitOfWork.SecretariesRepository.UpdateAsync(existingSecretary);
             await unitOfWork.SaveChangesAsync();
         }
 
@@ -94,7 +76,6 @@ namespace UniversityApp.Core.DomainServices
             {
                 throw new EntityNotFoundException($"The searched secretary was not found!");
             }
-
         }
     }
 }

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Identity;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
@@ -11,30 +12,17 @@ using UniversityApp.Core.ViewModels;
 
 namespace UniversityApp.Core.DomainServices
 {
-    public class StudentService : IStudentService
+    public class StudentService : UserService, IStudentService
     {
-        private readonly IUnitOfWork unitOfWork;
+        public StudentService(IUnitOfWork unitOfWork, UserManager<User> userManager) : base(unitOfWork, userManager) { }
 
-        public StudentService(IUnitOfWork unitOfWork)
+        public async Task AddAsync(Student studentModel, string password)
         {
-            this.unitOfWork = unitOfWork;
-        }
-
-        public async Task AddAsync(StudentRegistrationViewModel studentModel, Guid userId)
-        {
-            Student student = new Student
+            var errorMessages = await SaveUserAsync(studentModel, password, Constants.StudentRole);
+            if (errorMessages.Any())
             {
-                FirstName = studentModel.FirstName,
-                LastName = studentModel.LastName,
-                Cnp = studentModel.Cnp,
-                PhoneNumber = studentModel.PhoneNumber,
-                Email = studentModel.Email,
-                StudyYear = studentModel.StudyYear,
-                Section = studentModel.Section,
-                GroupName = studentModel.GroupName
-            };
-            await unitOfWork.StudentsRepository.CreateAsync(student);
-            await unitOfWork.SaveChangesAsync();
+                throw new FailedUserRegistrationException(string.Join("\n", errorMessages));
+            }
         }
 
         public async Task DeleteAsync(DeleteStudentViewModel model)
@@ -62,16 +50,40 @@ namespace UniversityApp.Core.DomainServices
             return (await unitOfWork.StudentsRepository.GetAsync(filter)).ToList();
         }
 
+        public async Task<Student> GetEnrolledStudentAsync(string courseTitle, string cnp)
+        {
+            var course = (await unitOfWork.CoursesRepository.GetAsync(c => c.CourseTitle == courseTitle)).FirstOrDefault();
+            var student = (await unitOfWork.StudentsRepository.GetAsync(s => s.Cnp == cnp)).FirstOrDefault();
+
+            if (course != null && student != null)
+            {
+                var enrollment = (await unitOfWork.EnrollmentsRepository.GetAsync(
+                    e => e.CourseId == course.Id && e.StudentId == student.Id)).FirstOrDefault();
+                if (enrollment != null)
+                {
+                    return student;
+                }
+            }
+            return null;
+        }
+
         public async Task<Student> GetFirstOrDefaultAsync(Expression<Func<Student, bool>> filter)
         {
             return (await unitOfWork.StudentsRepository.GetAsync(filter)).FirstOrDefault();
         }
 
-        public async Task UpdateAsync(Student student)
+        public async Task<Student> UpdateAsync(Student student)
         {
             await CheckIfStudentExistsAsync(student.Id);
-            await unitOfWork.StudentsRepository.DeleteAsync(student.Id);
+            var existingStudent = await GetFirstOrDefaultAsync(x => x.Id == student.Id);
+            SetNewPropertyValues(existingStudent, student);
+            existingStudent.Section = student.Section;
+            existingStudent.GroupName = student.GroupName;
+            existingStudent.StudyYear = student.StudyYear;
+            var updatedStudent = await unitOfWork.StudentsRepository.UpdateAsync(existingStudent);
             await unitOfWork.SaveChangesAsync();
+
+            return updatedStudent;
         }
 
         private async Task CheckIfStudentExistsAsync(Guid id)

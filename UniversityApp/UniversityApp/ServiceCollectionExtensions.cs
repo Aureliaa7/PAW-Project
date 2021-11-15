@@ -23,7 +23,6 @@ namespace UniversityApp.Presentation
             services.AddScoped<ICourseService, CourseService>();
             services.AddScoped<IGradeService, GradeService>();
             services.AddScoped<IEnrollmentService, EnrollmentService>();
-            services.AddScoped<IUserService, UserService>();
             services.AddScoped<ITeachedCourseService, TeachedCourseService>();
             services.AddScoped<IFindLoggedInUser, FindLoggedUser>();
             services.AddScoped<IAccountService, AccountService>();

@@ -10,7 +10,7 @@ namespace UniversityApp.Core.DomainServices
     {
         public string GetUserProfileImage(User user)
         {
-            string imageDataURL = "";
+            string imageDataURL = null;
             if (user?.Image != null)
             {
                 string imageBase64Data = Convert.ToBase64String(user.Image, 0, user.Image.Length);

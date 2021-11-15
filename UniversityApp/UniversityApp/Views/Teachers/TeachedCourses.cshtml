@@ -1,4 +1,4 @@
-﻿@model IEnumerable<UniversityApp.Core.DomainEntities.Course>
+﻿@model IEnumerable<CourseDto>
 
 @{
     ViewData["Title"] = "TeachedCourses";
@@ -6,43 +6,6 @@
 }
 
 <h4 style="text-align:center">Teached Courses</h4>
-<table  class="table table-dark">
-    <thead>
-        <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.CourseTitle)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.NoCredits)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Year)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Semester)
-            </th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.CourseTitle)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.NoCredits)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Year)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Semester)
-            </td>
-            <td>
-                <a asp-action="GetStudents" asp-route-id="@item.Id">Students</a> 
-            </td>
-        </tr>
-}
-    </tbody>
-</table>
+<hr/>
+
+<partial name="_AllCoursesPartial" model="@Model" />

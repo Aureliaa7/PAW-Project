@@ -1,17 +1,18 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using UniversityApp.Core;
 using UniversityApp.Core.DomainEntities;
+using UniversityApp.Core.Exceptions;
 using UniversityApp.Core.Interfaces.Services;
 using UniversityApp.Core.ViewModels;
+using UniversityApp.Presentation.Controllers;
 
 namespace UniversityApp.Controllers
 {
@@ -20,18 +21,21 @@ namespace UniversityApp.Controllers
         private IStudentService studentService;
         private SignInManager<User> signManager;
         private UserManager<User> userManager;
-        private IUserService userService;
+        private IImageService imageService;
+        private IMapper mapper;
 
         public StudentsController(
             IStudentService studentService, 
             SignInManager<User> signManager, 
             UserManager<User> userManager, 
-            IUserService userService)
+            IImageService imageService,
+            IMapper mapper)
         {
             this.studentService = studentService;
             this.signManager = signManager;
             this.userManager = userManager;
-            this.userService = userService;
+            this.imageService = imageService;
+            this.mapper = mapper;
         }
 
         [Authorize(Roles = Constants.SecretaryRole)]
@@ -42,16 +46,7 @@ namespace UniversityApp.Controllers
 
         public async Task<IActionResult> Details(Guid? id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
-            var student = await studentService.GetFirstOrDefaultAsync(s => s.Id == id);
-            if (student == null)
-            {
-                return NotFound();
-            }
-            return View(student);
+            return await GetStudentView(id);
         }
 
         [Authorize(Roles = Constants.SecretaryRole)]
@@ -62,73 +57,50 @@ namespace UniversityApp.Controllers
 
         [Authorize(Roles = Constants.SecretaryRole)]
         [HttpPost]
-        public async Task<IActionResult> Create(List<IFormFile> Image, StudentRegistrationViewModel student)
+        public async Task<IActionResult> Create(StudentRegistrationViewModel student)
         {
-            var user = userService.CreateUser(Image, String.Concat(student.LastName, student.FirstName), student.Email, student.PhoneNumber);
-            user.Cnp = student.Cnp;
-            if(user != null)
+            var mappedStudent = mapper.Map<Student>(student);
+            mappedStudent.Image = imageService.GetBytes(student.Image);
+
+            try
             {
-                var result = await userManager.CreateAsync(user, student.Password);
+                await studentService.AddAsync(mappedStudent, student.Password);
 
-                if (result.Succeeded)
-                {
-                    student.Image = user.Image;
-                    await userManager.AddToRoleAsync(user, student.Role);
-                    await studentService.AddAsync(student, user.Id);
-
-                    return RedirectToAction("Create", "Enrollments");
-                }
-                else
-                {
-                    foreach (var error in result.Errors)
-                    {
-                        ModelState.AddModelError("", error.Description);
-                    }
-                }
+                return RedirectToAction("Index", "Students");
             }
-            
-
+            catch (FailedUserRegistrationException ex)
+            {
+                //TODO display these messages
+            }
             return View(student);
         }
 
         [Authorize(Roles = Constants.SecretaryRole)]
         public async Task<IActionResult> Edit(Guid? id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
-            var student = (await studentService.GetAsync(s => s.Id == id)).FirstOrDefault();
-
-            if (student == null)
-            {
-                return NotFound();
-            }
-            return View(student);
+            return await GetStudentView(id);
         }
-
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(Guid id, [Bind("StudentId,UserId,FirstName,LastName,Cnp,PhoneNumber,Email,StudyYear,Section,GroupName")] Student student)
+        public async Task<IActionResult> Edit(Guid id, [Bind("Id,UserId,FirstName,LastName,Cnp,PhoneNumber,Email,StudyYear,Section,GroupName")] Student student)
         {
             if (id != student.Id)
             {
-                return NotFound();
+                return RedirectToAction(nameof(ErrorsController.EntityNotFound), "Errors");
             }
 
             if (ModelState.IsValid)
             {
-                await studentService.UpdateAsync(student); ;
-                // WHY DO I DO THIS?!
-                // IDK
-                var studentFound = (await studentService.GetAsync(s => s.Id == student.Id)).FirstOrDefault();
-                if (studentFound == null)
+                try
                 {
-                    return NotFound();
+                    var updatedStudent = await studentService.UpdateAsync(student);
+                    return RedirectToAction(nameof(Index)); //TODO redirect to Details page
                 }
-
-                return RedirectToAction(nameof(Index));
+                catch (EntityNotFoundException)
+                {
+                    return RedirectToAction(nameof(ErrorsController.EntityNotFound), "Errors");
+                }
             }
             return View(student);
         }
@@ -136,16 +108,7 @@ namespace UniversityApp.Controllers
         [Authorize(Roles = Constants.SecretaryRole)]
         public async Task<IActionResult> Delete(Guid? id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
-            var students = (await studentService.GetAsync(s => s.Id == id)).FirstOrDefault();
-            if (students == null)
-            {
-                return NotFound();
-            }
-            return View(students);
+            return await GetStudentView(id);
         }
 
         public async Task<IActionResult> DeleteSelectedStudent()
@@ -171,21 +134,16 @@ namespace UniversityApp.Controllers
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(Guid id)
-        {
-            var student = (await studentService.GetAsync(s => s.Id == id)).FirstOrDefault();
-            var user = (await userService.GetAsync(u => String.Equals(u.Id, student.Id))).FirstOrDefault();
-        
-            await studentService.DeleteAsync(student.Id);
-            await userService.DeleteAsync(user.Id);
-
+        {        
+            await studentService.DeleteAsync(id);
             return RedirectToAction(nameof(Index));
         }
 
         public async Task<IActionResult> GetStudentToBeDeleted(int studyYear, string sectionName, string cnp)
         {
             var studentName = "student not found";
-            var searchedStudent = (await studentService.GetAsync(s => (s.StudyYear == studyYear)
-            && (String.Equals(s.Section, sectionName)) && (String.Equals(s.Cnp, cnp)))).FirstOrDefault();
+            var searchedStudent = await studentService.GetFirstOrDefaultAsync(s => s.StudyYear == studyYear
+                && s.Section == sectionName && s.Cnp == cnp);
             if (searchedStudent != null)
             {
                 studentName = searchedStudent.LastName + " " + searchedStudent.FirstName;
@@ -204,7 +162,7 @@ namespace UniversityApp.Controllers
             if(applicationUser != null)
             {
                 // search the student based on his user id
-                var student = (await studentService.GetAsync(s => String.Equals(userId, s.Id))).FirstOrDefault();
+                var student = await studentService.GetFirstOrDefaultAsync(s => userId == s.Id.ToString());
                 
                 if (student != null)
                 {
@@ -220,11 +178,25 @@ namespace UniversityApp.Controllers
             var userId = findUserService.GetIdLoggedInUser();
             if (userId != null)
             {
-                var student = (await studentService.GetAsync(s => String.Equals(userId, s.Id))).FirstOrDefault();
+                var student = await studentService.GetFirstOrDefaultAsync(s => userId == s.Id.ToString());
                 var grades = gradeService.GetGradesForStudentAsync(student.Id);
                 return View(grades);
             }
             return RedirectToAction("Home","Students");
-    }
+        }
+
+        private async Task<IActionResult> GetStudentView(Guid? id)
+        {
+            if (id == null)
+            {
+                return RedirectToAction(nameof(ErrorsController.EntityNotFound), "Errors");
+            }
+            var student = await studentService.GetFirstOrDefaultAsync(s => s.Id == id);
+            if (student == null)
+            {
+                return RedirectToAction(nameof(ErrorsController.EntityNotFound), "Errors");
+            }
+            return View(student);
+        }
     }
 }

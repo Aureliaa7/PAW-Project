@@ -9,7 +9,7 @@ namespace UniversityApp.Core.Interfaces.Services
 {
     public interface IStudentService
     {
-        Task AddAsync(StudentRegistrationViewModel studentModel, Guid userId);
+        Task AddAsync(Student studentModel, string password);
 
         Task DeleteAsync(DeleteStudentViewModel model);
 
@@ -17,8 +17,10 @@ namespace UniversityApp.Core.Interfaces.Services
 
         Task<IEnumerable<Student>> GetAsync(Expression<Func<Student, bool>> filter = null);
 
-        Task UpdateAsync(Student student);
+        Task<Student> UpdateAsync(Student student);
 
         Task<Student> GetFirstOrDefaultAsync(Expression<Func<Student, bool>> filter);
+
+        Task<Student> GetEnrolledStudentAsync(string courseTitle, string cnp);
     }
 }

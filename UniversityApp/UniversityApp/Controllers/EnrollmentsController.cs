@@ -1,6 +1,4 @@
-﻿using System;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -18,7 +16,6 @@ namespace UniversityApp.Controllers
         private readonly ICourseService courseService;
         private readonly IMapper mapper;
 
-
         public EnrollmentsController(
             IEnrollmentService enrollmentService,
             IStudentService studentService,
@@ -35,11 +32,7 @@ namespace UniversityApp.Controllers
         public async Task<IActionResult> Index()
         {
             var enrollments = await enrollmentService.GetAllEnrollmentsAsync();
-            if (enrollments.Any())
-            {
-                return View(enrollments);
-            }
-            return View();
+            return View(enrollments);
         }
 
         [Authorize(Roles = Constants.SecretaryRole)]
@@ -72,7 +65,6 @@ namespace UniversityApp.Controllers
             return View();
         }
 
-   
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(DeleteEnrollmentViewModel model)
@@ -81,22 +73,15 @@ namespace UniversityApp.Controllers
             return RedirectToAction("Home", "Secretaries");
         }
 
-        // MOVE THIS TO A SERVICE
-        // Or keep it here for now, maybe it's called from a js file
         public async Task<IActionResult> GetEnrolledStudentName(string courseTitle, string studentCnp)
         {
-            var course = await courseService.GetFirstOrDefaultAsync(c => String.Equals(c.CourseTitle, courseTitle));
-            var student = (await studentService.GetAsync(s => String.Equals(s.Cnp, studentCnp))).FirstOrDefault();
-            var studentName = "student not enrolled to selected course...";
-            if(course != null && student != null)
+            var student = await studentService.GetEnrolledStudentAsync(courseTitle, studentCnp);
+
+            if (student != null)
             {
-                var enrollment = await enrollmentService.GetFirstOrDefaultAsync(e => (e.CourseId == course.Id) && (e.StudentId == student.Id));
-                if(enrollment != null)
-                {
-                    studentName = student.LastName + " " + student.FirstName;
-                }
+                return Json($"{student.LastName} {student.FirstName}");
             }
-            return Json(studentName);
+            return Json("student not enrolled to selected course...");
         }
     }
 }

@@ -2,7 +2,7 @@
 
 namespace UniversityApp.Presentation.Controllers
 {
-    public class ExceptionsController : Controller
+    public class ErrorsController : Controller
     {
         public IActionResult EntityNotFound()
         {

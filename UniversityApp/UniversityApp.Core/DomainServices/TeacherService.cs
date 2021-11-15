@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Identity;
+using System;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
@@ -6,41 +7,26 @@ using UniversityApp.Core.DomainEntities;
 using UniversityApp.Core.Exceptions;
 using UniversityApp.Core.Interfaces.Repositories;
 using UniversityApp.Core.Interfaces.Services;
-using UniversityApp.Core.ViewModels;
 
 namespace UniversityApp.Core.DomainServices
 {
-    public class TeacherService : ITeacherService
+    public class TeacherService : UserService, ITeacherService
     {
-        private readonly IUnitOfWork unitOfWork;
+        public TeacherService(IUnitOfWork unitOfWork, UserManager<User> userManager) 
+            : base(unitOfWork, userManager) { }
 
-        public TeacherService(IUnitOfWork unitOfWork)
+        public async Task AddAsync(Teacher teacherModel, string password)
         {
-            this.unitOfWork = unitOfWork;
-        }
-
-        public async Task AddAsync(TeacherRegistrationViewModel teacherModel,Guid userId)
-        {
-            Teacher teacher = new Teacher
+            var errorMessages = await SaveUserAsync(teacherModel, password, Constants.TeacherRole);
+            if (errorMessages.Any())
             {
-                FirstName = teacherModel.FirstName,
-                LastName = teacherModel.LastName,
-                Cnp = teacherModel.Cnp,
-                PhoneNumber = teacherModel.PhoneNumber,
-                Email = teacherModel.Email,
-                Degree = teacherModel.Degree
-            };
-            await unitOfWork.TeachersRepository.CreateAsync(teacher);
-            await unitOfWork.SaveChangesAsync();
+                throw new FailedUserRegistrationException(string.Join("\n", errorMessages));
+            }
         }
 
         public async Task DeleteAsync(Guid id)
         {
-            bool teacherExists = await unitOfWork.TeachersRepository.ExistsAsync(t => t.Id == id);
-            if (!teacherExists)
-            {
-                throw new EntityNotFoundException($"The teacher with the id {id} was not found!");
-            }
+            await CheckIfTeacherExistsAsync(id);
             await unitOfWork.TeachersRepository.DeleteAsync(id);
             await unitOfWork.SaveChangesAsync();
         }
@@ -57,13 +43,21 @@ namespace UniversityApp.Core.DomainServices
 
         public async Task UpdateAsync(Teacher teacher)
         {
-            bool teacherExists = await unitOfWork.TeachersRepository.ExistsAsync(t => t.Id == teacher.Id);
+            await CheckIfTeacherExistsAsync(teacher.Id);
+            var existingTeacher = await GetFirstOrDefaultAsync(x => x.Id == teacher.Id);
+            SetNewPropertyValues(existingTeacher, teacher);
+            existingTeacher.Degree = teacher.Degree;
+            await unitOfWork.TeachersRepository.UpdateAsync(existingTeacher);
+            await unitOfWork.SaveChangesAsync();
+        }
+
+        private async Task CheckIfTeacherExistsAsync(Guid id)
+        {
+            bool teacherExists = await unitOfWork.TeachersRepository.ExistsAsync(t => t.Id == id);
             if (!teacherExists)
             {
-                throw new EntityNotFoundException($"The teached with the id {teacher.Id} was not found!");
+                throw new EntityNotFoundException($"The teached with the id {id} was not found!");
             }
-            await unitOfWork.TeachersRepository.UpdateAsync(teacher);
-            await unitOfWork.SaveChangesAsync();
         }
     }
 }

@@ -10,6 +10,7 @@ using UniversityApp.Core;
 using UniversityApp.Core.DomainEntities;
 using UniversityApp.Core.DTOs;
 using UniversityApp.Core.Interfaces.Services;
+using UniversityApp.Presentation.Controllers;
 
 namespace UniversityApp.Controllers
 {
@@ -36,16 +37,7 @@ namespace UniversityApp.Controllers
 
         public async Task<IActionResult> Details(Guid? id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
-            var grade = await gradeService.GetFirstOrDefaultAsync(g => g.GradeId == id);
-            if (grade == null)
-            {
-                return NotFound();
-            }
-            return View(mapper.Map<GradeDto>(grade));
+            return await ReturnGradeView(id);
         }
 
         [Authorize(Roles = Constants.TeacherRole)]
@@ -72,28 +64,13 @@ namespace UniversityApp.Controllers
         [Authorize(Roles = Constants.TeacherRole)]
         public async Task<IActionResult> Edit(Guid? id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
-            var grade = await gradeService.GetFirstOrDefaultAsync(g => g.GradeId == id);
-
-            if (grade == null)
-            {
-                return NotFound();
-            }
-            return View(mapper.Map<GradeDto>(grade));
+            return await ReturnGradeView(id);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(Guid id, [Bind("GradeId,EnrollmentId,Value,Date")] GradeDto grade)
         {
-            if (id != grade.GradeId)
-            {
-                return NotFound();
-            }
-
             if (ModelState.IsValid)
             {
                 try
@@ -106,30 +83,18 @@ namespace UniversityApp.Controllers
                     {
                         return NotFound();
                     }
-                    else
-                    {
-                        throw;
-                    }
                 }
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["EnrollmentId"] = new SelectList(await enrollmentService.GetAllEnrollmentsAsync(), "EnrollmentId", "EnrollmentId", grade.EnrollmentId);
+            ViewData["EnrollmentId"] = new SelectList(
+                await enrollmentService.GetAllEnrollmentsAsync(), "EnrollmentId", "EnrollmentId", grade.EnrollmentId);
             return View(grade);
         }
 
         [Authorize(Roles = Constants.TeacherRole)]
         public async Task<IActionResult> Delete(Guid? id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
-            var grade = await gradeService.GetFirstOrDefaultAsync(g => g.GradeId == id);
-            if (grade == null)
-            {
-                return NotFound();
-            }
-            return View(mapper.Map<GradeDto>(grade));
+            return await ReturnGradeView(id);
         }
 
         [HttpPost, ActionName("Delete")]
@@ -138,6 +103,21 @@ namespace UniversityApp.Controllers
         {
             await gradeService.DeleteAsync(id);
             return RedirectToAction(nameof(Index));
+        }
+
+        private async Task<IActionResult> ReturnGradeView(Guid? id)
+        {
+            if (id == null)
+            {
+                return RedirectToAction(nameof(ErrorsController.EntityNotFound), "Errors");
+            }
+            var grade = await gradeService.GetFirstOrDefaultAsync(g => g.GradeId == id);
+
+            if (grade == null)
+            {
+                return RedirectToAction(nameof(ErrorsController.EntityNotFound), "Errors");
+            }
+            return View(mapper.Map<GradeDto>(grade));
         }
     }
 }

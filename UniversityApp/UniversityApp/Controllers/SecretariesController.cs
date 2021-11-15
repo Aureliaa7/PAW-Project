@@ -10,6 +10,7 @@ using UniversityApp.Core.DTOs;
 using UniversityApp.Core.Exceptions;
 using UniversityApp.Core.Interfaces.Services;
 using UniversityApp.Core.ViewModels;
+using UniversityApp.Presentation.Controllers;
 
 namespace UniversityApp.Controllers
 {
@@ -37,21 +38,8 @@ namespace UniversityApp.Controllers
 
         public async Task<IActionResult> Details(Guid? id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var secretary = await secretaryService.GetFirstOrDefaultAsync(s => s.Id == id);
-
-            if (secretary == null)
-            {
-                return RedirectToAction("Exceptions", "EntityNotFound");
-            }
-
-            return View(secretary);  ///
+            return await ReturnSecretaryView<SecretaryDto>(id);
         }
-
 
         [HttpGet]
         [Authorize(Roles = Constants.SecretaryRole)]
@@ -81,15 +69,8 @@ namespace UniversityApp.Controllers
         [Authorize(Roles = Constants.SecretaryRole)]
         public async Task<IActionResult> Edit(Guid? id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var secretary = await secretaryService.GetFirstOrDefaultAsync(s => s.Id == id);
-            return View(mapper.Map<EditSecretaryDto>(secretary));
+            return await ReturnSecretaryView<EditSecretaryDto>(id);
         }
-
         
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -97,7 +78,7 @@ namespace UniversityApp.Controllers
         {
             if (id != secretary.Id)
             {
-                return NotFound();
+                return RedirectToAction(nameof(ErrorsController.EntityNotFound), "Errors");
             }
 
             if (ModelState.IsValid)
@@ -105,7 +86,7 @@ namespace UniversityApp.Controllers
                 var secretaryFound = await secretaryService.GetFirstOrDefaultAsync(s => s.Id == id);
                 if (secretaryFound == null)
                 {
-                    return NotFound();
+                    return RedirectToAction(nameof(ErrorsController.EntityNotFound), "Errors");
                 }
                 await secretaryService.UpdateAsync(mapper.Map<Secretary>(secretary));
                 return RedirectToAction(nameof(Index));
@@ -116,20 +97,9 @@ namespace UniversityApp.Controllers
         [Authorize(Roles = Constants.SecretaryRole)]
         public async Task<IActionResult> Delete(Guid? id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
-            var secretary = await secretaryService.GetFirstOrDefaultAsync(s => s.Id == id);
-
-            if (secretary == null)
-            {
-                return NotFound();
-            }
-            return View(secretary);
+            return await ReturnSecretaryView<SecretaryDto>(id);
         }
 
-    
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(Guid id)
@@ -160,7 +130,7 @@ namespace UniversityApp.Controllers
         public async Task<IActionResult> GetSecretaryNameByCnp(string cnp)
         {
             var secretaryName = "secretary not found";
-            var searchedSecretary = await secretaryService.GetFirstOrDefaultAsync(s => String.Equals(s.Cnp, cnp));
+            var searchedSecretary = await secretaryService.GetFirstOrDefaultAsync(s => s.Cnp == cnp);
             if(searchedSecretary != null)
             {
                 secretaryName = searchedSecretary.LastName + " " + searchedSecretary.FirstName;
@@ -174,7 +144,7 @@ namespace UniversityApp.Controllers
             var userId = findUserService.GetIdLoggedInUser();
             if (userId != null)
             {
-                var secretary = await secretaryService.GetFirstOrDefaultAsync(s => String.Equals(userId, s.Id));
+                var secretary = await secretaryService.GetFirstOrDefaultAsync(s => s.Id.ToString() == userId);
 
                 if (secretary != null)
                 {
@@ -182,6 +152,21 @@ namespace UniversityApp.Controllers
                 }
             }
             return View();
+        }
+
+        private async Task<IActionResult> ReturnSecretaryView<T>(Guid? id)
+        {
+            if (id == null)
+            {
+                return RedirectToAction(nameof(ErrorsController.EntityNotFound), "Errors");
+            }
+            var secretary = await secretaryService.GetFirstOrDefaultAsync(s => s.Id == id);
+
+            if (secretary == null)
+            {
+                return RedirectToAction(nameof(ErrorsController.EntityNotFound), "Errors");
+            }
+            return View(mapper.Map<T>(secretary));
         }
     }
 }

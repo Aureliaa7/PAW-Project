@@ -48,7 +48,7 @@ namespace UniversityApp.Core.DomainServices
             var courseNames = new List<Course>();
             foreach(var tc in teachedCourses)
             {
-                courseNames.Add((await unitOfWork.CoursesRepository.GetAsync(c => c.Id == tc.CourseId)).ToList().FirstOrDefault());
+                courseNames.Add((await unitOfWork.CoursesRepository.GetAsync(c => c.Id == tc.CourseId)).FirstOrDefault());
             }
             return courseNames;
         }

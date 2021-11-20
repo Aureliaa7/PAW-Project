@@ -4,7 +4,6 @@ using UniversityApp.Core.Interfaces.Services;
 
 namespace UniversityApp.Core.DomainServices
 {
-    //TODO get rid of this service or move it to presentation layer
     public class FindLoggedUser : ILoggedInUserService
     {
         private readonly IHttpContextAccessor httpContextAccessor;

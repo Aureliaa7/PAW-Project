@@ -5,7 +5,6 @@ using System.Security.Claims;
 using System.Threading.Tasks;
 using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using UniversityApp.Core;
 using UniversityApp.Core.DomainEntities;
@@ -20,21 +19,15 @@ namespace UniversityApp.Controllers
     public class TeachersController : Controller
     {
         private readonly ITeacherService teacherService;
-        private readonly SignInManager<User> signManager;
-        private readonly UserManager<User> userManager;
         private readonly IMapper mapper;
         private readonly IImageService imageService;
 
         public TeachersController(
             ITeacherService teacherService, 
-            SignInManager<User> signManager, 
-            UserManager<User> userManager,
             IMapper mapper,
             IImageService imageService)
         {
             this.teacherService = teacherService;
-            this.signManager = signManager;
-            this.userManager = userManager;
             this.mapper = mapper;
             this.imageService = imageService;
         }
@@ -42,7 +35,7 @@ namespace UniversityApp.Controllers
         [Authorize(Roles = Constants.SecretaryRole)]
         public async Task<IActionResult> Index()
         {
-            return View((await teacherService.GetAsync()).ToList().OrderBy(t => t.LastName));
+            return View((await teacherService.GetAsync()).OrderBy(t => t.LastName));
         }
 
         [Authorize(Roles = Constants.SecretaryRole)]
@@ -66,7 +59,7 @@ namespace UniversityApp.Controllers
             }
             catch (FailedUserRegistrationException ex)
             {
-                //TODO display these messages
+                ModelState.AddModelError("", ex.Message);
             }
             return View(teacherModel);
         }

@@ -8,19 +8,19 @@
 
 <h4 style="text-align:justify">Grades</h4>
 
-<table class="table table-hover table-dark">
+<table class="table table-hover table-dark" aria-labelledby="UniversityApp">
     <thead>
         <tr>
-            <th>
+            <th scope="col">
                 @Html.DisplayNameFor(model => model.Value)
             </th>
-            <th>
+            <th scope="col">
                 @Html.DisplayNameFor(model => model.Date)
             </th>
-            <th>
+            <th scope="col">
                 @Html.DisplayNameFor(model => model.Enrollment)
             </th>
-            <th></th>
+            <th scope="col"></th>
         </tr>
     </thead>
     <tbody>

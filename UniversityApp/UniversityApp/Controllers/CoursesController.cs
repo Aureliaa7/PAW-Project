@@ -51,17 +51,7 @@ namespace UniversityApp.Controllers
         [Authorize(Roles = Constants.SecretaryRole)]
         public async Task<IActionResult> Edit(Guid? id)
         {
-            if (id == null)
-            {
-                return RedirectToAction(nameof(ErrorsController.EntityNotFound), "Errors");
-            }
-            var course = await courseService.GetFirstOrDefaultAsync(c => c.Id == id);
-
-            if (course == null)
-            {
-                return RedirectToAction(nameof(ErrorsController.EntityNotFound), "Errors");
-            }
-            return View(mapper.Map<CourseDto>(course));
+            return await GetCourseView(id);
         }
 
         [HttpPost]
@@ -71,11 +61,6 @@ namespace UniversityApp.Controllers
             if (ModelState.IsValid)
             {
                 await courseService.UpdateAsync(mapper.Map<Course>(course));
-                var courseFound = await courseService.GetFirstOrDefaultAsync(c => c.Id == course.Id);
-                if (courseFound == null)
-                {
-                    return RedirectToAction(nameof(ErrorsController.EntityNotFound), "Errors");
-                }
 
                 return RedirectToAction(nameof(Index));
             }
@@ -85,16 +70,7 @@ namespace UniversityApp.Controllers
         [Authorize(Roles = Constants.SecretaryRole)]
         public async Task<IActionResult> Delete(Guid? id)
         {
-            if (id == null)
-            {
-                return RedirectToAction(nameof(ErrorsController.EntityNotFound), "Errors");
-            }
-            var course = await courseService.GetFirstOrDefaultAsync(c => c.Id == id);
-            if (course == null)
-            {
-                return RedirectToAction(nameof(ErrorsController.EntityNotFound), "Errors");
-            }
-            return View(mapper.Map<CourseDto>(course));
+            return await GetCourseView(id);
         }
 
         [HttpPost, ActionName("Delete")]
@@ -103,6 +79,21 @@ namespace UniversityApp.Controllers
         {
             await courseService.DeleteAsync(id);
             return RedirectToAction(nameof(Index));
+        }
+
+        private async Task<IActionResult> GetCourseView(Guid? id)
+        {
+            if (id == null)
+            {
+                return RedirectToAction(nameof(ErrorsController.EntityNotFound), "Errors");
+            }
+
+            var course = await courseService.GetFirstOrDefaultAsync(c => c.Id == id);
+            if (course == null)
+            {
+                return RedirectToAction(nameof(ErrorsController.EntityNotFound), "Errors");
+            }
+            return View(mapper.Map<CourseDto>(course));
         }
     }
 }

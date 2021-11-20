@@ -1,7 +1,6 @@
 ﻿using System.Threading.Tasks;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Authorization;
 using UniversityApp.Core.DomainEntities;
 using UniversityApp.Core.Interfaces.Services;
@@ -15,18 +14,15 @@ namespace UniversityApp.Controllers
     public class AccountsController : Controller
     {
         private readonly UserManager<User> userManager;
-        private readonly IHttpContextAccessor contextAccessor;
         private readonly IAccountService accountService;
         private readonly IImageService imageService;
 
         public AccountsController(
             UserManager<User> userManager, 
-            IHttpContextAccessor contextAccessor, 
             IAccountService accountService, 
             IImageService imageService)
         {
             this.userManager = userManager;
-            this.contextAccessor = contextAccessor;
             this.accountService = accountService;
             this.imageService = imageService;
         }
@@ -88,12 +84,10 @@ namespace UniversityApp.Controllers
                 return $"/{role}s/Home";
             }
 
-            if (role == Constants.SecretaryRole)
+            else
             {
                 return $"/Secretaries/Home";
             }
-
-            return string.Empty;
         }
 
         [HttpPost]

@@ -1,21 +1,21 @@
 ﻿@model IEnumerable<CourseDto>
 
-<table class="table table-dark">
+<table class="table table-dark" aria-labelledby="UniversityApp">
     <thead>
         <tr>
-            <th>
+            <th scope="col">
                 @Html.DisplayNameFor(model => model.CourseTitle)
             </th>
-            <th>
+            <th scope="col">
                 @Html.DisplayNameFor(model => model.NoCredits)
             </th>
-            <th>
+            <th scope="col">
                 @Html.DisplayNameFor(model => model.Year)
             </th>
-            <th>
+            <th scope="col">
                 @Html.DisplayNameFor(model => model.Semester)
             </th>
-            <th></th>
+            <th scope="col"></th>
         </tr>
     </thead>
     <tbody>

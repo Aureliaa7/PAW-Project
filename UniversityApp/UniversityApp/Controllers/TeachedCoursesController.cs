@@ -30,11 +30,10 @@ namespace UniversityApp.Controllers
         [Authorize]
         public async Task<IActionResult> Create()
         {
-            ViewData["CourseTitle"] = new SelectList(await courseService.GetAllAsync(), "CourseTitle", "CourseTitle");
-            //it would be better/easier for user to see the teacher's name instead of their cnp
-            // TODO make this change 
             var teachers = (await teacherService.GetAsync()).ToList();
             teachers.ForEach(t => t.FullName = $"{t.LastName} {t.FirstName}");
+
+            ViewData["CourseTitle"] = new SelectList(await courseService.GetAllAsync(), "CourseTitle", "CourseTitle");
             ViewData["TeacherCnp"] = new SelectList(teachers, "Cnp", "FullName");
             return View();
         }
@@ -66,7 +65,7 @@ namespace UniversityApp.Controllers
             {
                 return RedirectToAction(nameof(ErrorsController.EntityNotFound), "Errors");
             }
-            //TODO replace course id and teacher id with the names
+
             ViewData["CourseId"] = new SelectList(await courseService.GetAllAsync(), "CourseId", "CourseId", teachedCourses.CourseId);
             ViewData["TeacherId"] = new SelectList(await teacherService.GetAsync(), "TeacherId", "TeacherId", teachedCourses.TeacherId);
             return View(teachedCourses);

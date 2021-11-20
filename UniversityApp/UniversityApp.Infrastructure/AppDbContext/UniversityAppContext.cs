@@ -21,18 +21,18 @@ namespace UniversityApp.Infrastructure.AppDbContext
         public virtual DbSet<TeachedCourse> TeachedCourses { get; set; }
         public virtual DbSet<Teacher> Teachers { get; set; }
 
-        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        protected override void OnModelCreating(ModelBuilder builder)
         {
-            base.OnModelCreating(modelBuilder);
+            base.OnModelCreating(builder);
 
-            new CourseConfiguration().Configure(modelBuilder.Entity<Course>());
-            new EnrollmentConfiguration().Configure(modelBuilder.Entity<Enrollment>());
-            new GradeConfiguration().Configure(modelBuilder.Entity<Grade>());
-            new RoleConfiguration().Configure(modelBuilder.Entity<ApplicationRole>());
-            new StudentConfiguration().Configure(modelBuilder.Entity<Student>());
-            new TeachedCourseConfiguration().Configure(modelBuilder.Entity<TeachedCourse>());
-            new TeacherConfiguration().Configure(modelBuilder.Entity<Teacher>());
-            new UserConfiguration().Configure(modelBuilder.Entity<User>());
+            new CourseConfiguration().Configure(builder.Entity<Course>());
+            new EnrollmentConfiguration().Configure(builder.Entity<Enrollment>());
+            new GradeConfiguration().Configure(builder.Entity<Grade>());
+            new RoleConfiguration().Configure(builder.Entity<ApplicationRole>());
+            new StudentConfiguration().Configure(builder.Entity<Student>());
+            new TeachedCourseConfiguration().Configure(builder.Entity<TeachedCourse>());
+            new TeacherConfiguration().Configure(builder.Entity<Teacher>());
+            new UserConfiguration().Configure(builder.Entity<User>());
         }
     }
 }

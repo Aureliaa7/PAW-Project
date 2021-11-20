@@ -61,7 +61,7 @@ namespace UniversityApp.Controllers
             }
             catch (FailedUserRegistrationException ex)
             {
-                //TODO do smth with the ex. message
+                ModelState.AddModelError("", ex.Message);
             }
             return View(secretaryDto);
         }

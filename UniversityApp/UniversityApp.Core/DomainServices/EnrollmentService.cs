@@ -14,12 +14,10 @@ namespace UniversityApp.Core.DomainServices
     public class EnrollmentService : IEnrollmentService
     {
         private readonly IUnitOfWork unitOfWork;
-        private readonly ICourseService courseService;
 
-        public EnrollmentService(IUnitOfWork unitOfWork, ICourseService courseService)
+        public EnrollmentService(IUnitOfWork unitOfWork)
         {
             this.unitOfWork = unitOfWork;
-            this.courseService = courseService;
         }
 
         public async Task<IEnumerable<Enrollment>> GetEnrollmentsForStudentAsync(Guid studentId)
@@ -125,26 +123,19 @@ namespace UniversityApp.Core.DomainServices
 
         public async Task<IEnumerable<EnrolledStudentViewModel>> GetEnrolledStudentsByCourseAndTeacherIdAsync(Guid teacherId, Guid courseId)
         {
-            var students = await courseService.GetEnrolledStudents(courseId);
-            var enrolledStudentsModels = new List<EnrolledStudentViewModel>();
-            foreach (var student in students)
-            {
-                var enrollment = await GetFirstOrDefaultAsync(e => e.StudentId == student.Id && e.CourseId == courseId && e.TeacherId == teacherId);
-                if (enrollment != null)
+            var enrolledStudentsModels = 
+                (await unitOfWork.EnrollmentsRepository.GetAsync(e => e.CourseId == courseId && e.TeacherId == teacherId))
+                .Select(x => new EnrolledStudentViewModel
                 {
-                    enrolledStudentsModels.Add(new EnrolledStudentViewModel
-                    {
-                        FirstName = student.FirstName,
-                        LastName = student.LastName,
-                        CNP = student.Cnp,
-                        Email = student.Email,
-                        PhoneNumber = student.PhoneNumber,
-                        Section = student.Section,
-                        GroupName = student.GroupName,
-                        EnrollmentID = enrollment.EnrollmentId
-                    });
-                }
-            }
+                    FirstName = x.Student.FirstName,
+                    LastName = x.Student.LastName,
+                    CNP = x.Student.Cnp,
+                    Email = x.Student.Email,
+                    PhoneNumber = x.Student.PhoneNumber,
+                    Section = x.Student.Section,
+                    GroupName = x.Student.GroupName,
+                    EnrollmentID = x.EnrollmentId
+                }).ToList();
 
             return enrolledStudentsModels;
         }

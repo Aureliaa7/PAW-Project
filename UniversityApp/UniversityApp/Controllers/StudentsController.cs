@@ -18,21 +18,18 @@ namespace UniversityApp.Controllers
 {
     public class StudentsController : Controller
     {
-        private IStudentService studentService;
-        private SignInManager<User> signManager;
-        private UserManager<User> userManager;
-        private IImageService imageService;
-        private IMapper mapper;
+        private readonly IStudentService studentService;
+        private readonly UserManager<User> userManager;
+        private readonly IImageService imageService;
+        private readonly IMapper mapper;
 
         public StudentsController(
             IStudentService studentService, 
-            SignInManager<User> signManager, 
             UserManager<User> userManager, 
             IImageService imageService,
             IMapper mapper)
         {
             this.studentService = studentService;
-            this.signManager = signManager;
             this.userManager = userManager;
             this.imageService = imageService;
             this.mapper = mapper;
@@ -70,7 +67,7 @@ namespace UniversityApp.Controllers
             }
             catch (FailedUserRegistrationException ex)
             {
-                //TODO display these messages
+                ModelState.AddModelError("", ex.Message);
             }
             return View(student);
         }
@@ -85,17 +82,12 @@ namespace UniversityApp.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(Guid id, [Bind("Id,UserId,FirstName,LastName,Cnp,PhoneNumber,Email,StudyYear,Section,GroupName")] Student student)
         {
-            if (id != student.Id)
-            {
-                return RedirectToAction(nameof(ErrorsController.EntityNotFound), "Errors");
-            }
-
             if (ModelState.IsValid)
             {
                 try
                 {
-                    var updatedStudent = await studentService.UpdateAsync(student);
-                    return RedirectToAction(nameof(Index)); //TODO redirect to Details page
+                    await studentService.UpdateAsync(student);
+                    return RedirectToAction(nameof(Index));
                 }
                 catch (EntityNotFoundException)
                 {
@@ -155,19 +147,13 @@ namespace UniversityApp.Controllers
         public async Task<IActionResult> Home()
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            var userName = User.FindFirstValue(ClaimTypes.Name);
-
             User applicationUser =  await userManager.GetUserAsync(User);
-            string userEmail = applicationUser?.Email;
-            if(applicationUser != null)
+
+            if (applicationUser != null)
             {
-                // search the student based on his user id
                 var student = await studentService.GetFirstOrDefaultAsync(s => userId == s.Id.ToString());
-                
-                if (student != null)
-                {
-                    return View(student);
-                }
+
+                return View(student);
             }
             return View();
         }

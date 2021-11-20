@@ -117,13 +117,12 @@ function get_teachers_by_course_id() {
         url: "../TeachedCourses/GetTeachersByCourseId",
         type: "GET",
         data: enrollment_details,
-        success: function (data) {
+        success: function (teachers) {
             var s = '<option value="-1">Please select</option>';
-            for (var i = 0; i < data.length; i++) {
-                s += '<option value="' + data[i].id + '">' + data[i].fullName + '</option>';
+            for (var teacher of teachers) {
+                s += '<option value="' + teacher.id + '">' + teacher.fullName + '</option>';
             }
             $("#teacher").html(s);  
-            console.log(data);
         },
         error: function () {
             console.log("Something went wrong");

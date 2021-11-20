@@ -6,34 +6,34 @@
 }
 
 <h4 style="text-align:center">Students</h4>
-<table  class="table table-dark">
+<table class="table table-dark" aria-labelledby="UniversityApp">
     <thead>
         <tr>
-            <th>
+            <th scope="col">
                 @Html.DisplayNameFor(model => model.EnrollmentID)
             </th>
-            <th>
+            <th scope="col">
                 @Html.DisplayNameFor(model => model.FirstName)
             </th>
-            <th>
+            <th scope="col">
                 @Html.DisplayNameFor(model => model.LastName)
             </th>
-            <th>
+            <th scope="col">
                 @Html.DisplayNameFor(model => model.CNP)
             </th>
-            <th>
+            <th scope="col">
                 @Html.DisplayNameFor(model => model.PhoneNumber)
             </th>
-            <th>
+            <th scope="col">
                 @Html.DisplayNameFor(model => model.Email)
             </th>
-            <th>
+            <th scope="col">
                 @Html.DisplayNameFor(model => model.Section)
             </th>
-            <th>
+            <th scope="col">
                 @Html.DisplayNameFor(model => model.GroupName)
             </th>
-            <th></th>
+            <th scope="col"></th>
         </tr>
     </thead>
     <tbody>

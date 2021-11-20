@@ -56,15 +56,6 @@ namespace UniversityApp.Core.DomainServices
             return (await unitOfWork.CoursesRepository.GetAsync(filter)).ToList();
         }
 
-        // returns all the students taking a certain course
-        public async Task<IEnumerable<Student>> GetEnrolledStudents(Guid courseId)
-        {
-            await CheckIfCourseExistsAsync(courseId);
-            var enrollments = await unitOfWork.EnrollmentsRepository.GetAsync(enrollment => enrollment.CourseId == courseId);
-            var enrolledStudents = enrollments.Select(enrollment => enrollment.Student).ToList();
-            return enrolledStudents;
-        }
-
         public async Task<Course> GetFirstOrDefaultAsync(Expression<Func<Course, bool>> filter)
         {
             return (await unitOfWork.CoursesRepository.GetAsync(filter)).FirstOrDefault();

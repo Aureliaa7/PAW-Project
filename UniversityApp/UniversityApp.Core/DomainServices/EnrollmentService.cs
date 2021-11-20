@@ -4,6 +4,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 using UniversityApp.Core.DomainEntities;
+using UniversityApp.Core.Exceptions;
 using UniversityApp.Core.Interfaces.Repositories;
 using UniversityApp.Core.Interfaces.Services;
 using UniversityApp.Core.ViewModels;
@@ -13,10 +14,12 @@ namespace UniversityApp.Core.DomainServices
     public class EnrollmentService : IEnrollmentService
     {
         private readonly IUnitOfWork unitOfWork;
+        private readonly ICourseService courseService;
 
-        public EnrollmentService(IUnitOfWork unitOfWork)
+        public EnrollmentService(IUnitOfWork unitOfWork, ICourseService courseService)
         {
             this.unitOfWork = unitOfWork;
+            this.courseService = courseService;
         }
 
         public async Task<IEnumerable<Enrollment>> GetEnrollmentsForStudentAsync(Guid studentId)
@@ -60,7 +63,8 @@ namespace UniversityApp.Core.DomainServices
                             CourseTitle = course.CourseTitle,
                             StudentCnp = student.Cnp,
                             FirstName = student.FirstName,
-                            LastName = student.LastName
+                            LastName = student.LastName,
+                            EnrollmentId = enrollment.EnrollmentId
                         });
                     }
                 }
@@ -68,25 +72,45 @@ namespace UniversityApp.Core.DomainServices
             return enrollmentModels;
         }
 
-        public async Task CreateEnrollmentAsync(EnrollmentViewModel model)
+        public async Task CreateEnrollmentAsync(CreateEnrollmentViewModel model)
         {
-            Course course = (await unitOfWork.CoursesRepository.GetAsync(c => String.Equals(c.CourseTitle, model.CourseTitle))).FirstOrDefault();
-            Student student = (await unitOfWork.StudentsRepository.GetAsync(s => String.Equals(s.Cnp, model.StudentCnp))).FirstOrDefault();
-            if (course != null && student != null)
-            {
-                var foundEnrollment = (await unitOfWork.EnrollmentsRepository.GetAsync(e => (e.CourseId == course.Id) 
+            await CheckIfEntitiesExists(model);
+
+            Student student = (await unitOfWork.StudentsRepository.GetAsync(s => s.Cnp == model.StudentCnp)).FirstOrDefault();
+                var foundEnrollment = (await unitOfWork.EnrollmentsRepository.GetAsync(e => (e.CourseId == model.CourseId) 
                 && (String.Equals(e.Student.Cnp, student.Cnp)))).FirstOrDefault();
-                if(foundEnrollment == null)
+            if (foundEnrollment == null)
+            {
+                Enrollment enrollment = new Enrollment
                 {
-                    Enrollment enrollment = new Enrollment
-                    {
-                        CourseId = course.Id,
-                        StudentId = student.Id
-                    };
-                    await unitOfWork.EnrollmentsRepository.CreateAsync(enrollment);
-                    await unitOfWork.SaveChangesAsync();
-                }
+                    CourseId = model.CourseId,
+                    StudentId = student.Id,
+                    TeacherId = model.TeacherId
+                };
+                await unitOfWork.EnrollmentsRepository.CreateAsync(enrollment);
+                await unitOfWork.SaveChangesAsync();
             }
+        }
+
+        private async Task CheckIfEntitiesExists(CreateEnrollmentViewModel model)
+        {
+            bool studentExists = await unitOfWork.StudentsRepository.ExistsAsync(s => s.Cnp == model.StudentCnp);
+            if (!studentExists)
+            {
+                throw new EntityNotFoundException("The student does not exist!");
+            }
+
+            bool courseExists = await unitOfWork.CoursesRepository.ExistsAsync(c => c.Id == model.CourseId);
+            if (!courseExists)
+            {
+                throw new EntityNotFoundException($"The course with the id {model.CourseId} does not exist!");
+            }
+
+            bool teacherExists = await unitOfWork.TeachersRepository.ExistsAsync(t => t.Id == model.TeacherId);
+            if (!teacherExists)
+            {
+                throw new EntityNotFoundException($"The teacher with the id {model.TeacherId} does not exist!");
+            }     
         }
 
         public async Task<Enrollment> GetFirstOrDefaultAsync(Expression<Func<Enrollment, bool>> filter)
@@ -97,6 +121,32 @@ namespace UniversityApp.Core.DomainServices
         public async Task<IEnumerable<Enrollment>> GetAllAsync(Expression<Func<Enrollment, bool>> filter = null)
         {
             return (await unitOfWork.EnrollmentsRepository.GetAsync(filter)).ToList();
+        }
+
+        public async Task<IEnumerable<EnrolledStudentViewModel>> GetEnrolledStudentsByCourseAndTeacherIdAsync(Guid teacherId, Guid courseId)
+        {
+            var students = await courseService.GetEnrolledStudents(courseId);
+            var enrolledStudentsModels = new List<EnrolledStudentViewModel>();
+            foreach (var student in students)
+            {
+                var enrollment = await GetFirstOrDefaultAsync(e => e.StudentId == student.Id && e.CourseId == courseId && e.TeacherId == teacherId);
+                if (enrollment != null)
+                {
+                    enrolledStudentsModels.Add(new EnrolledStudentViewModel
+                    {
+                        FirstName = student.FirstName,
+                        LastName = student.LastName,
+                        CNP = student.Cnp,
+                        Email = student.Email,
+                        PhoneNumber = student.PhoneNumber,
+                        Section = student.Section,
+                        GroupName = student.GroupName,
+                        EnrollmentID = enrollment.EnrollmentId
+                    });
+                }
+            }
+
+            return enrolledStudentsModels;
         }
     }
 }

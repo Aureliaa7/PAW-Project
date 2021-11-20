@@ -47,7 +47,9 @@ namespace UniversityApp.Core.DomainServices
 
         public async Task<IEnumerable<Student>> GetAsync(Expression<Func<Student, bool>> filter = null)
         {
-            return (await unitOfWork.StudentsRepository.GetAsync(filter)).ToList();
+            var students = (await unitOfWork.StudentsRepository.GetAsync(filter)).ToList();
+            students.ForEach(s => s.FullName = $"{s.LastName} {s.FirstName}");
+            return students;
         }
 
         public async Task<Student> GetEnrolledStudentAsync(string courseTitle, string cnp)
@@ -81,6 +83,7 @@ namespace UniversityApp.Core.DomainServices
             existingStudent.GroupName = student.GroupName;
             existingStudent.StudyYear = student.StudyYear;
             var updatedStudent = await unitOfWork.StudentsRepository.UpdateAsync(existingStudent);
+            updatedStudent.FullName = $"{updatedStudent.LastName} {updatedStudent.FirstName}";
             await unitOfWork.SaveChangesAsync();
 
             return updatedStudent;

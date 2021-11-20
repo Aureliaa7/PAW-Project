@@ -5,9 +5,10 @@
     Layout = "~/Views/Shared/_SecretariesLayout.cshtml";
 }
 
-<h4 style="text-align: center;">Add teacher</h4>
-<hr />
-<div class="container py-5">
+
+<div class="container py-5 create-edit-teacher-container">
+    <h4 style="text-align: center;">Add teacher</h4>
+    <hr />
     <div class="row">
         <div class="col-md-10 mx-auto">
             <form asp-action="Create" method="post" enctype="multipart/form-data">
@@ -66,7 +67,7 @@
 
                 <div class="col-sm-12">
                     <div class="form-row justify-content-center">
-                        <input type="submit" value="Add teacher" class="btn btn-primary"/>
+                        <input type="submit" value="Add teacher" class="btn btn-primary" />
                     </div>
                 </div>
 

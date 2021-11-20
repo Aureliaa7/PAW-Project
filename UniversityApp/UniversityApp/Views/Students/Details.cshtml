@@ -5,14 +5,13 @@
     Layout = "~/Views/Shared/_SecretariesLayout.cshtml";
 }
 
-<h1>Details</h1>
-
-<div>
-    <h4>Students</h4>
+<div class="student-details-container">
+    <h4 class="align-text-to-center">Student's details</h4>
     <hr />
     <partial name="_DetailsPartial" model="@Model" />
-</div>
-<div>
-    <a asp-action="Edit" asp-route-id="@Model.Id">Edit</a> |
-    <a asp-action="Index">Back to List</a>
+
+    <div class="edit-index-student-links">
+        <a asp-action="Edit" asp-route-id="@Model.Id">Edit</a> |
+        <a asp-action="Index">Back to List</a>
+    </div>
 </div>

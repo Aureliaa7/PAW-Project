@@ -93,3 +93,101 @@ body {
 #button-form-two {
     width: 50%;
 }
+
+.create-edit-form-group {
+    width: 90%;
+    margin: 1.5%;
+    margin-left: 5%;
+    justify-content: center;
+    margin-bottom: 4%
+}
+
+.create-edit-form {
+    background-color: #d3d3d3;
+    height: 400px;
+}
+
+.course-details {
+    background-color: #d3d3d3;
+    width: 500px;
+    margin: auto;
+    height: 300px;
+}
+
+.course-details-row,
+.delete-teacher-row,
+.student-details-row,
+.secretary-details-row {
+    margin-top: 50px;
+    margin-left: 20px;
+}
+
+.delete-course-form,
+.delete-teacher-form,
+.delete-student-form,
+.edit-index-student-links,
+.delete-secretary-form {
+    margin-left: 20px;
+}
+
+.create-edit-teacher-container,
+.create-edit-student-container,
+.create-secretary-container {
+    background-color: #d3d3d3;
+}
+
+.delete-teacher-container {
+    background-color: #d3d3d3;
+    width: 500px;
+    margin: auto;
+    height: 300px;
+}
+
+.delete-student-container,
+.student-details-container,
+.delete-secretary-container,
+.secretary-details-container {
+    background-color: #d3d3d3;
+    width: 500px;
+    margin: auto;
+    height: 400px;
+}
+
+.align-text-to-center {
+    text-align: center;
+}
+
+.edit-secretary-container {
+    background-color: #d3d3d3;
+    width: 650px;
+    margin-left: 210px;
+    margin-top: 10px;
+}
+
+.edit-secretary-row {
+    margin-left: 100px;
+}
+
+.create-enrollment-container {
+    background-color: #d3d3d3;
+    margin-left: 340px;
+    margin-top: 10px;
+}
+
+.delete-enrollment-container {
+    background-color: #d3d3d3;
+    width: 600px;
+    margin: auto;
+}
+
+.delete-enrollment-form {
+    margin-left:20px;
+}
+
+.footer {
+    height: 50px;
+}
+
+.main-container {
+    margin-bottom: 60px;
+}

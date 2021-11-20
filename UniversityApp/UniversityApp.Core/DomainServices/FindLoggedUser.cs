@@ -5,7 +5,7 @@ using UniversityApp.Core.Interfaces.Services;
 namespace UniversityApp.Core.DomainServices
 {
     //TODO get rid of this service or move it to presentation layer
-    public class FindLoggedUser : IFindLoggedInUser
+    public class FindLoggedUser : ILoggedInUserService
     {
         private readonly IHttpContextAccessor httpContextAccessor;
 
@@ -13,6 +13,6 @@ namespace UniversityApp.Core.DomainServices
         {
             this.httpContextAccessor = httpContextAccessor;
         }
-        public string GetIdLoggedInUser() => httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
+        public string GetCurrentUserId() => httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
     }
 }

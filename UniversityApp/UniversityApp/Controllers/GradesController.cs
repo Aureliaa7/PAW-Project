@@ -5,7 +5,6 @@ using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.EntityFrameworkCore;
 using UniversityApp.Core;
 using UniversityApp.Core.DomainEntities;
 using UniversityApp.Core.DTOs;
@@ -73,17 +72,7 @@ namespace UniversityApp.Controllers
         {
             if (ModelState.IsValid)
             {
-                try
-                {
-                    await gradeService.UpdateAsync(mapper.Map<Grade>(grade));
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!await gradeService.ExistsAsync(g => g.GradeId == id))
-                    {
-                        return NotFound();
-                    }
-                }
+                await gradeService.UpdateAsync(mapper.Map<Grade>(grade));
                 return RedirectToAction(nameof(Index));
             }
             ViewData["EnrollmentId"] = new SelectList(

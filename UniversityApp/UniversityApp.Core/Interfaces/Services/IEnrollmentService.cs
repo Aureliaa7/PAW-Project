@@ -15,10 +15,12 @@ namespace UniversityApp.Core.Interfaces.Services
 
         Task DeleteEnrollmentAsync(DeleteEnrollmentViewModel model);
 
-        Task CreateEnrollmentAsync(EnrollmentViewModel model);
+        Task CreateEnrollmentAsync(CreateEnrollmentViewModel model);
 
         Task<Enrollment> GetFirstOrDefaultAsync(Expression<Func<Enrollment, bool>> filter);
 
         Task<IEnumerable<Enrollment>> GetAllAsync(Expression<Func<Enrollment, bool>> filter = null);
+
+        Task<IEnumerable<EnrolledStudentViewModel>> GetEnrolledStudentsByCourseAndTeacherIdAsync(Guid teacherId, Guid courseId);
     }
 }

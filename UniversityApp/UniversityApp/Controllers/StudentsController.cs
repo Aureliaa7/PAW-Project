@@ -173,16 +173,24 @@ namespace UniversityApp.Controllers
         }
 
         [Authorize(Roles = Constants.StudentRole)]
-        public async Task<IActionResult> Grades([FromServices] IGradeService gradeService, [FromServices] IFindLoggedInUser findUserService)
+        public async Task<IActionResult> Grades([FromServices] IGradeService gradeService, [FromServices] ILoggedInUserService findUserService)
         {
-            var userId = findUserService.GetIdLoggedInUser();
+            var userId = findUserService.GetCurrentUserId();
             if (userId != null)
             {
                 var student = await studentService.GetFirstOrDefaultAsync(s => userId == s.Id.ToString());
-                var grades = gradeService.GetGradesForStudentAsync(student.Id);
+                var grades = await gradeService.GetGradesForStudentAsync(student.Id);
                 return View(grades);
             }
             return RedirectToAction("Home","Students");
+        }
+
+        [Authorize(Roles = Constants.TeacherRole)]
+        public async Task<IActionResult> EnrolledStudents(Guid courseId, [FromServices] ILoggedInUserService userService, [FromServices] IEnrollmentService enrollmentService)
+        {
+            var currentTeacherId = userService.GetCurrentUserId();
+            var enrolledStudents = await enrollmentService.GetEnrolledStudentsByCourseAndTeacherIdAsync(new Guid(currentTeacherId), courseId);
+            return View(enrolledStudents);
         }
 
         private async Task<IActionResult> GetStudentView(Guid? id)

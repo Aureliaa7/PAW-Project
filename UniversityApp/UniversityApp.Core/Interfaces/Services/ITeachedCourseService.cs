@@ -18,5 +18,7 @@ namespace UniversityApp.Core.Interfaces.Services
         Task UpdateAsync(TeachedCourse teachedCourse);
 
         Task<TeachedCourse> GetFirstOrDefaultAsync(Expression<Func<TeachedCourse, bool>> filter);
+
+        Task<IEnumerable<Teacher>> GetTeachersByCourseIdAsync(Guid courseId);
     }
 }

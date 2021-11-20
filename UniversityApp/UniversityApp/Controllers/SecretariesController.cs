@@ -139,9 +139,9 @@ namespace UniversityApp.Controllers
         }
 
         [Authorize]
-        public async Task<IActionResult> Home([FromServices] IFindLoggedInUser findUserService)
+        public async Task<IActionResult> Home([FromServices] ILoggedInUserService findUserService)
         {
-            var userId = findUserService.GetIdLoggedInUser();
+            var userId = findUserService.GetCurrentUserId();
             if (userId != null)
             {
                 var secretary = await secretaryService.GetFirstOrDefaultAsync(s => s.Id.ToString() == userId);

@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using System;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace UniversityApp.Core.DomainEntities
 {
@@ -12,5 +13,8 @@ namespace UniversityApp.Core.DomainEntities
         public string FirstName { get; set; }
 
         public string LastName { get; set; }
+
+        [NotMapped]
+        public string FullName { get; set; }
     }
 }

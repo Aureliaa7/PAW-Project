@@ -16,6 +16,8 @@ namespace UniversityApp.Core.DomainEntities
 
         public Guid StudentId { get; set; }
 
+        public Guid TeacherId { get; set; }
+
 
         public virtual Course Course { get; set; }
 

@@ -1,5 +1,4 @@
 ﻿using System.Threading.Tasks;
-using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -14,18 +13,15 @@ namespace UniversityApp.Controllers
         private readonly IEnrollmentService enrollmentService;
         private readonly IStudentService studentService;
         private readonly ICourseService courseService;
-        private readonly IMapper mapper;
 
         public EnrollmentsController(
             IEnrollmentService enrollmentService,
             IStudentService studentService,
-            ICourseService courseService,
-            IMapper mapper)
+            ICourseService courseService)
         {
             this.enrollmentService = enrollmentService;
             this.studentService = studentService;
             this.courseService = courseService;
-            this.mapper = mapper;
         }
 
         [Authorize(Roles = Constants.SecretaryRole)]
@@ -38,14 +34,14 @@ namespace UniversityApp.Controllers
         [Authorize(Roles = Constants.SecretaryRole)]
         public async Task<IActionResult> Create()
         {
-            ViewData["CourseTitle"] = new SelectList(await courseService.GetAllAsync(), "CourseTitle", "CourseTitle");
-            ViewData["StudentCnp"] = new SelectList(await studentService.GetAsync(), "Cnp", "Cnp");
+            ViewData["CourseTitle"] = new SelectList(await courseService.GetAllAsync(), "Id", "CourseTitle");
+            ViewData["StudentNames"] = new SelectList(await studentService.GetAsync(), "Cnp", "FullName");
             return View();
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(EnrollmentViewModel enrollmentModel)
+        public async Task<IActionResult> Create(CreateEnrollmentViewModel enrollmentModel)
         {
             if (ModelState.IsValid)
             {
@@ -53,7 +49,7 @@ namespace UniversityApp.Controllers
                 return RedirectToAction("Home", "Secretaries");
             }
             ViewData["CourseTitle"] = new SelectList(await courseService.GetAllAsync(), "CourseTitle", "CourseTitle");
-            ViewData["StudentCnp"] = new SelectList(await studentService.GetAsync(), "Cnp", "Cnp");
+            ViewData["StudentCnp"] = new SelectList(await studentService.GetAsync(), "Cnp", "FullName");
             return View(enrollmentModel);
         }
 

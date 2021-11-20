@@ -5,15 +5,14 @@
     Layout = "~/Views/Shared/_TeachersLayout.cshtml";
 }
 
-
 @{ await Html.RenderPartialAsync(
-     "_GradePartial",
-     null,
-     new ViewDataDictionary(this.ViewData){
+    "_GradePartial",
+    null,
+    new ViewDataDictionary(this.ViewData){
         {"ActionName", "Create"},
         {"ButtonText", "Add grade"},
         {"FormName", "Add grade"}
-     });
+    });
 }
 
 

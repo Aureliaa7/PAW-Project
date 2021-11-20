@@ -5,10 +5,10 @@
     Layout = "~/Views/Shared/_SecretariesLayout.cshtml";
 }
 
-<h4 style="text-align: center;">Register secretary</h4>
-<hr />
 
-<div class="container py-5">
+<div class="container py-5 create-secretary-container">
+    <h4 style="text-align: center;">Register secretary</h4>
+    <hr />
     <div class="row">
         <div class="col-md-10 mx-auto">
             <form asp-action="Create" method="post" enctype="multipart/form-data">
@@ -59,7 +59,7 @@
                         <span asp-validation-for="Image" class="text-danger"></span>
                     </div>
                     <div class="col-sm-6">
-                        <input type="submit" value="Add secretary" class="btn btn-primary" id="button-form"/>
+                        <input type="submit" value="Add secretary" class="btn btn-primary" id="button-form" />
                     </div>
                 </div>
 

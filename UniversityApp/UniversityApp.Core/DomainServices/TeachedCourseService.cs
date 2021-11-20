@@ -64,5 +64,14 @@ namespace UniversityApp.Core.DomainServices
             await unitOfWork.TeachedCoursesRepository.UpdateAsync(teachedCourse);
             await unitOfWork.SaveChangesAsync();
         }
+
+        public async Task<IEnumerable<Teacher>> GetTeachersByCourseIdAsync(Guid courseId)
+        {
+            var teachersIds = (await unitOfWork.TeachedCoursesRepository.GetAsync(x => x.CourseId == courseId))
+                .Select(x => x.TeacherId);
+            var teachers = (await unitOfWork.TeachersRepository.GetAsync(x => teachersIds.Contains(x.Id))).ToList();
+
+            return teachers;
+        }
     }
 }

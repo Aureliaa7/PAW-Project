@@ -37,14 +37,14 @@
             @if (User.IsInRole("Secretary"))
             {
                 <td>
-                    <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
-                    <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
+                    <a asp-controller="Courses" asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
+                    <a asp-controller="Courses" asp-action="Delete" asp-route-id="@item.Id">Delete</a>
                 </td>
             }
             else if (User.IsInRole("Teacher"))
             {
                 <td>
-                    <a asp-action="GetStudents" asp-route-id="@item.Id">Students</a>
+                    <a asp-controller="Students" asp-action="EnrolledStudents" asp-route-courseId="@item.Id">Students</a>
                 </td>
             }
         </tr>

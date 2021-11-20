@@ -104,8 +104,6 @@ namespace UniversityApp.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        //this does not belong here.
-        //TODO check if is called from a js file and if not, delete it
         public async Task<IActionResult> GetCourses(Guid id, [FromServices] ITeachedCourseService teachedCourseService)
         {
             var courses = await teachedCourseService.GetTeachedCoursesAsync(id);
@@ -113,12 +111,12 @@ namespace UniversityApp.Controllers
         }
 
         [Authorize(Roles = Constants.TeacherRole)]
-        public async Task<IActionResult> Home([FromServices]IFindLoggedInUser findUserService)
+        public async Task<IActionResult> Home([FromServices]ILoggedInUserService findUserService)
         {
-            var userId = findUserService.GetIdLoggedInUser();
+            var userId = findUserService.GetCurrentUserId();
             if (userId != null)
             {
-                var teacher = await teacherService.GetFirstOrDefaultAsync(s => String.Equals(userId, s.Id));
+                var teacher = await teacherService.GetFirstOrDefaultAsync(s => s.Id.ToString() == userId);
 
                 if (teacher != null)
                 {
@@ -134,30 +132,7 @@ namespace UniversityApp.Controllers
             var teacherId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             var courses = await teachedCourseService.GetTeachedCoursesAsync(new Guid(teacherId));
             return View(mapper.Map<IEnumerable<CourseDto>>(courses));
-        }
-
-        //TODO move this to StudentsController
-        public async Task<IActionResult> GetStudents(Guid id, [FromServices] ICourseService courseService, [FromServices] IEnrollmentService enrollmentService)
-        {
-            var students = await courseService.GetEnrolledStudents(id);
-            var studentsToBeReturned = new List<EnrolledStudentViewModel>();
-            foreach(var student in students)
-            {
-                var enrollment = await enrollmentService.GetFirstOrDefaultAsync(e => e.StudentId == student.Id && e.CourseId == id);
-                studentsToBeReturned.Add(new EnrolledStudentViewModel
-                {
-                    FirstName = student.FirstName,
-                    LastName = student.LastName,
-                    CNP = student.Cnp,
-                    Email = student.Email,
-                    PhoneNumber = student.PhoneNumber,
-                    Section = student.Section,
-                    GroupName = student.GroupName,
-                    EnrollmentID = enrollment.EnrollmentId
-                });
-            }
-            return View(studentsToBeReturned);
-        }
+        }  
 
         private async Task<IActionResult> GetTeacherView(Guid? id)
         {

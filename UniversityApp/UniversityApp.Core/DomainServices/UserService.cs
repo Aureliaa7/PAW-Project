@@ -21,7 +21,7 @@ namespace UniversityApp.Core.DomainServices
         protected async Task<List<string>> SaveUserAsync(User user, string password, string role)
         {
             // Note: First set the UserName because otherwise the insert fails.
-            user.UserName = $"{user.FirstName}{user.LastName}";
+            user.UserName = user.Email;
             var result = await userManager.CreateAsync(user, password);
 
             var errorMessages = new List<string>();

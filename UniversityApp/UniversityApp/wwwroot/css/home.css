@@ -71,3 +71,20 @@ li a {
 #button-form {
     width: 100%;
 }
+
+.login-container {
+    background-color: #d3d3d3;
+    width: 500px;
+    height: 350px;
+    margin: auto;
+    margin-top: 60px;
+}
+
+.login-form {
+    margin-top: 25px;
+}
+
+.login-text {
+    text-align: center;
+    padding-top: 25px;
+}

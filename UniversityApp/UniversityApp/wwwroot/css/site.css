@@ -180,3 +180,18 @@ body {
 .main-container {
     margin-bottom: 60px;
 }
+
+.assign-course-container {
+    background-color: #d3d3d3;
+    width: 55%;
+    margin: auto;
+}
+
+.assign-course-form {
+    width: 100%;
+}
+
+.assign-course-text {
+    text-align: center;
+    padding: 5px;
+}

@@ -6,30 +6,29 @@
 }
 
 
-
-<h4 style="text-align: center;">Assign course</h4>
-<hr />
-<div class="row justify-content-center">
-    <div class="col-md-4">
-        <form asp-action="Create">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <div class="form-group">
-                <label asp-for="CourseTitle" class="control-label">Course title</label>
-                <select id="course_field" asp-for="CourseTitle" class="form-control" asp-items="ViewBag.CourseTitle"></select>
-            </div>
-            <div class="form-group">
-                <label asp-for="TeacherCnp" class="control-label">Teacher CNP</label>
-                <select id="cnp_field" asp-for="TeacherCnp" onchange="get_info()" class="form-control" asp-items="ViewBag.TeacherCnp"></select>
-            </div>
-            <div class="form-group">
-                <label asp-for="ExistingAssignment" class="control-label">Info</label>
-                <input id="name_field" asp-for="ExistingAssignment" class="form-control" disabled />
-            </div>
-            <div class="form-group">
-                <input type="submit" value="Assign" class="btn btn-primary" id="button-form" />
-            </div>
-        </form>
+<div class="assign-course-container">
+    <h4 class="assign-course-text">Assign course</h4>
+    <hr />
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <form asp-action="Create" class="assign-course-form">
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                <div class="form-group">
+                    <label asp-for="CourseTitle" class="control-label">Course title</label>
+                    <select id="course_field" asp-for="CourseTitle" class="form-control" asp-items="ViewBag.CourseTitle"></select>
+                </div>
+                <div class="form-group">
+                    <label asp-for="TeacherCnp" class="control-label">Teacher CNP</label>
+                    <select id="cnp_field" asp-for="TeacherCnp" onchange="get_info()" class="form-control" asp-items="ViewBag.TeacherCnp"></select>
+                </div>
+                <div class="form-group">
+                    <label asp-for="ExistingAssignment" class="control-label">Info</label>
+                    <input id="name_field" asp-for="ExistingAssignment" class="form-control" disabled />
+                </div>
+                <div class="form-group">
+                    <input type="submit" value="Assign" class="btn btn-primary" id="button-form" />
+                </div>
+            </form>
+        </div>
     </div>
 </div>
-
-

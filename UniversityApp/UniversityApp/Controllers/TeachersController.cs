@@ -35,7 +35,8 @@ namespace UniversityApp.Controllers
         [Authorize(Roles = Constants.SecretaryRole)]
         public async Task<IActionResult> Index()
         {
-            return View((await teacherService.GetAsync()).OrderBy(t => t.LastName));
+            var teachers = (await teacherService.GetAsync()).OrderBy(t => t.LastName);
+            return View(mapper.Map<IEnumerable<TeacherDto>>(teachers));
         }
 
         [Authorize(Roles = Constants.SecretaryRole)]
@@ -72,7 +73,7 @@ namespace UniversityApp.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(Guid id, [Bind("Id,FirstName,LastName,PhoneNumber,Email,Cnp,UserId,Degree")] Teacher teacher)
+        public async Task<IActionResult> Edit(Guid id, [Bind("Id,FirstName,LastName,PhoneNumber,Email,Cnp,Degree")] Teacher teacher)
         {
             if (ModelState.IsValid)
             {
@@ -113,7 +114,7 @@ namespace UniversityApp.Controllers
 
                 if (teacher != null)
                 {
-                    return View(teacher);
+                    return View(mapper.Map<TeacherDto>(teacher));
                 }
             }
             return View();
@@ -129,16 +130,12 @@ namespace UniversityApp.Controllers
 
         private async Task<IActionResult> GetTeacherView(Guid? id)
         {
-            if (id == null)
-            {
-                return RedirectToAction(nameof(ErrorsController.EntityNotFound), "Errors");
-            }
             var teacher = await teacherService.GetFirstOrDefaultAsync(t => t.Id == id);
             if (teacher == null)
             {
                 return RedirectToAction(nameof(ErrorsController.EntityNotFound), "Errors");
             }
-            return View(teacher);
+            return View(mapper.Map<TeacherDto>(teacher));
         }
     }
 }

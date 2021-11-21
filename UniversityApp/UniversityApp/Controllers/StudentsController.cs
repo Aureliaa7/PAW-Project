@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
@@ -9,6 +10,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using UniversityApp.Core;
 using UniversityApp.Core.DomainEntities;
+using UniversityApp.Core.DTOs;
 using UniversityApp.Core.Exceptions;
 using UniversityApp.Core.Interfaces.Services;
 using UniversityApp.Core.ViewModels;
@@ -38,7 +40,8 @@ namespace UniversityApp.Controllers
         [Authorize(Roles = Constants.SecretaryRole)]
         public async Task<IActionResult> Index()
         {
-            return View((await studentService.GetAsync()).OrderBy(s => s.StudyYear));
+            var students = (await studentService.GetAsync()).OrderBy(s => s.StudyYear);
+            return View(mapper.Map<IEnumerable<StudentDto>>(students));
         }
 
         public async Task<IActionResult> Details(Guid? id)
@@ -80,7 +83,7 @@ namespace UniversityApp.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(Guid id, [Bind("Id,UserId,FirstName,LastName,Cnp,PhoneNumber,Email,StudyYear,Section,GroupName")] Student student)
+        public async Task<IActionResult> Edit(Guid id, [Bind("Id,FirstName,LastName,Cnp,PhoneNumber,Email,StudyYear,Section,GroupName")] Student student)
         {
             if (ModelState.IsValid)
             {
@@ -181,16 +184,12 @@ namespace UniversityApp.Controllers
 
         private async Task<IActionResult> GetStudentView(Guid? id)
         {
-            if (id == null)
-            {
-                return RedirectToAction(nameof(ErrorsController.EntityNotFound), "Errors");
-            }
             var student = await studentService.GetFirstOrDefaultAsync(s => s.Id == id);
             if (student == null)
             {
                 return RedirectToAction(nameof(ErrorsController.EntityNotFound), "Errors");
             }
-            return View(student);
+            return View(mapper.Map<StudentDto>(student));
         }
     }
 }

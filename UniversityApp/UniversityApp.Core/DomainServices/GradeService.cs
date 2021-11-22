@@ -50,7 +50,6 @@ namespace UniversityApp.Core.DomainServices
             return (await unitOfWork.GradesRepository.GetAsync(filter)).FirstOrDefault();
         }
 
-        //get all grades of a student based on his id
         public async Task<IEnumerable<StudentGrade>> GetGradesForStudentAsync(Guid studentId)
         {
             var enrollments = (await unitOfWork.EnrollmentsRepository.GetAsync(e => e.StudentId == studentId)).ToList();
@@ -65,11 +64,8 @@ namespace UniversityApp.Core.DomainServices
             var studentGrades = new List<StudentGrade>();
             foreach(var item in grades)
             {
-                // search the enrollment
                 var enrollment = (await unitOfWork.EnrollmentsRepository.GetAsync(e => e.EnrollmentId == item.EnrollmentId)).FirstOrDefault();
-                // search the course
                 var course = (await unitOfWork.CoursesRepository.GetAsync(c => c.Id == enrollment.CourseId)).FirstOrDefault();
-                // create the studentGrade object
                 studentGrades.Add(new StudentGrade {GradeValue=item.Value, Date = item.Date, CourseTitle=course.CourseTitle });
             }
             return studentGrades;
@@ -80,8 +76,12 @@ namespace UniversityApp.Core.DomainServices
             var grades = new List<Grade>();
             foreach (var enrollment in enrollments)
             {
-                var grade = (await unitOfWork.GradesRepository.GetAsync(grade => grade.EnrollmentId == enrollment.EnrollmentId)).FirstOrDefault();
-                grades.Add(grade);
+                var grade = (await unitOfWork.GradesRepository.GetAsync(grade => grade.EnrollmentId == enrollment.EnrollmentId && 
+                    grade.Value != null)).FirstOrDefault();
+                if (grade != null)
+                {
+                    grades.Add(grade);
+                }
             }
             return grades;
         }

@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -34,8 +35,8 @@ namespace UniversityApp.Controllers
         [Authorize(Roles = Constants.SecretaryRole)]
         public async Task<IActionResult> Create()
         {
-            ViewData["CourseTitle"] = new SelectList(await courseService.GetAllAsync(), "Id", "CourseTitle");
-            ViewData["StudentNames"] = new SelectList(await studentService.GetAsync(), "Cnp", "FullName");
+            ViewData["CourseTitle"] = new SelectList((await courseService.GetAllAsync()).OrderBy(x => x.CourseTitle), "Id", "CourseTitle");
+            ViewData["StudentNames"] = new SelectList((await studentService.GetAsync()).OrderBy(x => x.FullName), "Cnp", "FullName");
             return View();
         }
 
@@ -46,7 +47,7 @@ namespace UniversityApp.Controllers
             if (ModelState.IsValid)
             {
                 await enrollmentService.CreateEnrollmentAsync(enrollmentModel);
-                return RedirectToAction("Home", "Secretaries");
+                return RedirectToAction("Index", "Enrollments");
             }
             ViewData["CourseTitle"] = new SelectList(await courseService.GetAllAsync(), "CourseTitle", "CourseTitle");
             ViewData["StudentCnp"] = new SelectList(await studentService.GetAsync(), "Cnp", "FullName");

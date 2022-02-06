@@ -50,7 +50,7 @@ namespace UniversityApp.Core.DomainServices
 
         public async Task LogoutAsync()
         {
-            httpContextAccessor.HttpContext.Session.Clear();   // what's stored in session?
+            httpContextAccessor.HttpContext.Session.Clear();
             await signManager.SignOutAsync();
         }
     }

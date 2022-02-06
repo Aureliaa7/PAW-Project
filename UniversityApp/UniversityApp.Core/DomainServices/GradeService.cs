@@ -81,7 +81,10 @@ namespace UniversityApp.Core.DomainServices
             foreach (var enrollment in enrollments)
             {
                 var grade = (await unitOfWork.GradesRepository.GetAsync(grade => grade.EnrollmentId == enrollment.EnrollmentId)).FirstOrDefault();
-                grades.Add(grade);
+                if (grade != null)
+                {
+                    grades.Add(grade);
+                }
             }
             return grades;
         }

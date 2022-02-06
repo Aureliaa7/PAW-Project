@@ -33,8 +33,9 @@ namespace UniversityApp.Controllers
             var teachers = (await teacherService.GetAsync()).ToList();
             teachers.ForEach(t => t.FullName = $"{t.LastName} {t.FirstName}");
 
-            ViewData["CourseTitle"] = new SelectList(await courseService.GetAllAsync(), "CourseTitle", "CourseTitle");
-            ViewData["TeacherCnp"] = new SelectList(teachers, "Cnp", "FullName");
+            ViewData["CourseTitle"] = new SelectList(
+                (await courseService.GetAllAsync()).OrderBy(x => x.CourseTitle), "CourseTitle", "CourseTitle");
+            ViewData["TeacherCnp"] = new SelectList(teachers.OrderBy(x => x.FullName), "Cnp", "FullName");
             return View();
         }
         
@@ -47,8 +48,14 @@ namespace UniversityApp.Controllers
                 await teachedCourseService.AssignCourseAsync(model);
                 return RedirectToAction("Home", "Secretaries");
             }
-            ViewData["CourseTitle"] = new SelectList(await courseService.GetAllAsync(), "CourseTitle", "CourseTitle");
-            ViewData["TeacherCnp"] = new SelectList(await teacherService.GetAsync(), "Cnp", "Cnp");
+            ViewData["CourseTitle"] = new SelectList(
+                (await courseService.GetAllAsync()).OrderBy(x => x.CourseTitle),
+                "CourseTitle",
+                "CourseTitle");
+            ViewData["TeacherCnp"] = new SelectList(
+                (await teacherService.GetAsync()).OrderBy(x => x.FullName),
+                "Cnp",
+                "Cnp");
             return View(model);
         }
 

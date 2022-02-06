@@ -94,6 +94,8 @@ body {
 .create-edit-form {
     background-color: #d3d3d3;
     height: 400px;
+    border-radius: 15px;
+    padding-top: 10px;
 }
 
 .course-details {
@@ -101,6 +103,7 @@ body {
     width: 500px;
     margin: auto;
     height: 300px;
+    border-radius: 15px;
 }
 
 .course-details-row,
@@ -123,13 +126,18 @@ body {
 .create-edit-student-container,
 .create-secretary-container {
     background-color: #d3d3d3;
+    border-radius: 20px;
+    margin-top: 35px;
 }
 
 .delete-teacher-container {
     background-color: #d3d3d3;
     width: 500px;
     margin: auto;
-    height: 300px;
+    height: 500px;
+    border-radius: 15px;
+    padding-top: 20px;
+    padding-left: 30px;
 }
 
 .delete-student-container,
@@ -140,6 +148,7 @@ body {
     width: 500px;
     margin: auto;
     height: 400px;
+    border-radius: 15px;
 }
 
 .align-text-to-center {
@@ -151,6 +160,7 @@ body {
     width: 650px;
     margin-left: 210px;
     margin-top: 10px;
+    border-radius: 15px;
 }
 
 .edit-secretary-row {
@@ -161,12 +171,16 @@ body {
     background-color: #d3d3d3;
     margin-left: 340px;
     margin-top: 10px;
+    border-radius: 15px;
 }
 
 .delete-enrollment-container {
     background-color: #d3d3d3;
     width: 600px;
     margin: auto;
+    border-radius: 15px;
+    margin-top: 40px;
+    padding-top: 12px;
 }
 
 .delete-enrollment-form {
@@ -185,13 +199,21 @@ body {
     background-color: #d3d3d3;
     width: 55%;
     margin: auto;
+    border-radius: 15px;
 }
 
 .assign-course-form {
     width: 100%;
+    padding: 10px;
 }
 
 .assign-course-text {
     text-align: center;
     padding: 5px;
+}
+
+.course-container,
+.grade-container,
+.teached-course-container {
+    border-radius: 15px;
 }
